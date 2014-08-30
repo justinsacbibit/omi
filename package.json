@@ -1,0 +1,23 @@
+{
+  "name": "omi-node",
+  "version": "0.0.0",
+  "description": "REST API for omi",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/justinsacbibit/omi-node.git"
+  },
+  "keywords": [
+    "omi",
+    "money"
+  ],
+  "author": "Justin Sacbibit",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/justinsacbibit/omi-node/issues"
+  },
+  "homepage": "https://github.com/justinsacbibit/omi-node"
+}
