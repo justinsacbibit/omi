@@ -19,5 +19,14 @@
   "bugs": {
     "url": "https://github.com/justinsacbibit/omi-node/issues"
   },
-  "homepage": "https://github.com/justinsacbibit/omi-node"
+  "homepage": "https://github.com/justinsacbibit/omi-node",
+  "dependencies": {
+    "express": "^4.8.7",
+    "mongoose": "^3.8.15",
+    "passport": "^0.2.1",
+    "nodemailer": "^1.2.1",
+    "ejs": "^1.0.0",
+    "passport-http-bearer": "^1.0.1",
+    "mongoose-schema-extend": "^0.1.7"
+  }
 }
