@@ -24,6 +24,12 @@
     "express": "^4.8.7",
     "mongoose": "^3.8.15",
     "nodemailer": "^1.2.1",
-    "mongoose-schema-extend": "^0.1.7"
+    "mongoose-schema-extend": "^0.1.7",
+    "passport": "^0.2.1",
+    "passport-http-bearer": "^1.0.1",
+    "oauth2orize": "^1.0.1",
+    "passport-oauth2-client-password": "^0.1.1",
+    "restler": "^3.2.2",
+    "body-parser": "^1.6.7"
   }
 }
