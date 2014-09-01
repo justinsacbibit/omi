@@ -1,5 +1,5 @@
 // Models
-var TransactionModel      = require('./model/transaction.js').TransactionModel
+var TransactionModel  = require('./model/transaction.js').TransactionModel
   , GroupOmiModel     = require('./model/groupOmi.js').GroupOmiModel
   , OmiModel          = require('./model/omi.js').OmiModel
   , OwerModel         = require('./model/ower.js').OwerModel
@@ -7,6 +7,16 @@ var TransactionModel      = require('./model/transaction.js').TransactionModel
   , TetheredOwerModel = require('./model/tetheredOwer.js').TetheredOwerModel
   , UserModel         = require('./model/user.js').UserModel;
 
-exports.use = function(app, mongoose, passport, nodemailer) {
-  
+var db         = require('./db.js')
+  , mongoURI   = process.env.MONGOHQ_URL || 'mongodb://localhost:27017';
+
+var middleware = require('./middleware.js')
+  , handlers   = require('./handlers.js');
+
+exports.use = function(express, app, mongoose, passport, nodemailer) {
+  db.init(mongoose, mongoURI);
+
+  app.all('/api/*', middleware.apikey());
+  app.use('/api/v1', handlers.use(express.Router()));
+  app.use(middleware.notFound());
 }

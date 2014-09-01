@@ -1,7 +1,7 @@
-var mongoose = require('mongoose')
-  , extend   = require('mongoose-schema-extend')
-  , Schema   = mongoose.Schema
-  , Transaction  = require('./transaction.js').Transaction;
+var mongoose    = require('mongoose')
+  , extend      = require('mongoose-schema-extend')
+  , Schema      = mongoose.Schema
+  , Transaction = require('./transaction.js').Transaction;
 
 var Payment = Transaction.extend({
   to: {

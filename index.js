@@ -21,7 +21,7 @@ var options = {
 app.use('/', express.static(path.join(__dirname, 'public')));
 
 // REST API
-api.use(app, mongoose, passport, nodemailer);
+api.use(express, app, mongoose, passport, nodemailer);
 
 var serverStart = function() {
   console.log('Server started on port %d', port);
