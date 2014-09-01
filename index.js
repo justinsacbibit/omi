@@ -11,11 +11,13 @@ var https      = require('https')
 
 var port = process.env.PORT || process.env.SSL ? 443 : 8080;
 
+// Load SSL Certificate
 var options = {
   key:  fs.readFileSync('./sslcert/key.pem'),
   cert: fs.readFileSync('./sslcert/cert.pem')
 }
 
+// Serve homepage
 app.use('/', express.static(path.join(__dirname, 'public')));
 
 // REST API
