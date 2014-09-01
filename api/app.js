@@ -1,5 +1,5 @@
 // Models
-var BaseOmiModel      = require('./model/baseOmi.js').BaseOmiModel
+var TransactionModel      = require('./model/transaction.js').TransactionModel
   , GroupOmiModel     = require('./model/groupOmi.js').GroupOmiModel
   , OmiModel          = require('./model/omi.js').OmiModel
   , OwerModel         = require('./model/ower.js').OwerModel

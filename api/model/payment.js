@@ -1,19 +1,9 @@
 var mongoose = require('mongoose')
-  , Schema   = mongoose.Schema;
+  , extend   = require('mongoose-schema-extend')
+  , Schema   = mongoose.Schema
+  , Transaction  = require('./transaction.js').Transaction;
 
-var Payment = new Schema({
-  amount: {
-    type:     Number,
-    required: true
-  },
-  note: {
-    type: String
-  },
-  from: {
-    type:     Schema.Types.ObjectId,
-    ref:      'Ower',
-    required: true
-  },
+var Payment = Transaction.extend({
   to: {
     type:     Schema.Types.ObjectId,
     ref:      'Ower',

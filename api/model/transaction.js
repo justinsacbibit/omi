@@ -1,7 +1,7 @@
 var mongoose = require('mongoose')
   , Schema   = mongoose.Schema;
 
-var BaseOmi = new Schema({
+var Transaction = new Schema({
     name: {
       type:     String,
       required: true
@@ -26,4 +26,4 @@ var BaseOmi = new Schema({
   discriminatorKey: '_type'
 });
 
-exports.BaseOmi = BaseOmi;
+exports.Transaction = Transaction;

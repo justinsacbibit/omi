@@ -1,10 +1,10 @@
 var mongoose = require('mongoose')
   , extend   = require('mongoose-schema-extend')
   , Schema   = mongoose.Schema
-  , BaseOmi  = require('./baseOmi.js').BaseOmi
+  , Transaction  = require('./transaction.js').Transaction
   , Omi      = require('./omi.js').Omi;
 
-var GroupOmi = BaseOmi.extend({
+var GroupOmi = Transaction.extend({
   omis: {
     type:     [Schema.Types.ObjectId],
     ref:      'Omi',
