@@ -4,7 +4,6 @@ var https      = require('https')
   , express    = require('express')
   , app        = express()
   , mongoose   = require('mongoose')
-  , passport   = require('passport')
   , nodemailer = require('nodemailer')
   , path       = require('path')
   , api        = require('./api/app.js');
@@ -21,7 +20,7 @@ var options = {
 app.use('/', express.static(path.join(__dirname, 'public')));
 
 // REST API
-api.use(express, app, mongoose, passport, nodemailer);
+api.use(express, app, mongoose, nodemailer);
 
 var serverStart = function() {
   console.log('Server started on port %d', port);

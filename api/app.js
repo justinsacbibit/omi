@@ -13,7 +13,7 @@ var db         = require('./db.js')
 var middleware = require('./middleware.js')
   , handlers   = require('./handlers.js');
 
-exports.use = function(express, app, mongoose, passport, nodemailer) {
+exports.use = function(express, app, mongoose, nodemailer) {
   db.init(mongoose, mongoURI);
 
   app.all('/api/*', middleware.apikey());
