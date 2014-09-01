@@ -1,5 +1,7 @@
 // Dependencies
-var express    = require('express')
+var https      = require('https')
+  , fs         = require('fs')
+  , express    = require('express')
   , app        = express()
   , mongoose   = require('mongoose')
   , passport   = require('passport')
@@ -7,13 +9,24 @@ var express    = require('express')
   , path       = require('path')
   , api        = require('./api/app.js');
 
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || process.env.SSL ? 443 : 8080;
+
+var options = {
+  key:  fs.readFileSync('./sslcert/key.pem'),
+  cert: fs.readFileSync('./sslcert/cert.pem')
+}
 
 app.use('/', express.static(path.join(__dirname, 'public')));
 
 // REST API
 api.use(app, mongoose, passport, nodemailer);
 
-app.listen(port, function() {
-  console.log('Server started on port %s', port);
-});
+var serverStart = function() {
+  console.log('Server started on port %d', port);
+};
+
+if (process.env.NODE_ENV === 'production' || !process.env.SSL) {
+  app.listen(port, serverStart);
+} else {
+  https.createServer(options, app).listen(port, serverStart);
+}
