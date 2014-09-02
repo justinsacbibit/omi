@@ -48,7 +48,7 @@ var getFriends = function(req, res) {
       return error.unauthorized(res, 'Permission required to access user friends', 1);
     }
 
-    fb.friends(facebookId, function(err, friends, totalCount, errMessageObj) {
+    fb.friends(fbToken, function(err, friends, totalCount, errMessageObj) {
       if (err) {
         logError('getFriends', 'fb.friends', err);
         return error.server(res);
@@ -76,7 +76,13 @@ var getFriends = function(req, res) {
         return 0;
       }).slice(req.query.offset, req.query.offset + req.query.limit);
 
-      return res.json(friends);
+      var JSON = {
+        friends: friends
+      }
+      if (totalCount) {
+        JSON['total_count'] = totalCount;
+      }
+      return res.json(JSON);
     });
   });
 };

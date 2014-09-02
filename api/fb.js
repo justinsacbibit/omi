@@ -169,7 +169,7 @@ exports.needPermissions = function(fbToken, permission) {
   return fbToken.scopes.indexOf(permission) <= -1;
 }
 
-exports.friends = function(facebookId, done) {
+exports.friends = function(fbToken, done) {
   var hmac = crypto.createHmac('sha256', process.env.APP_TOKEN);
   hmac.update(fbToken.token);
   var appSecretProof = hmac.digest('hex');
