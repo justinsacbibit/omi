@@ -88,52 +88,14 @@ exports.login = function(fbAccessToken, done) {
       var longLivedFbAccessToken = data['access_token']
         , expires                = Date.now() + parseInt(data['expires']);
 
-      FBTokenModel.findOne({
-        facebookId: facebookId
-      }, function(err, fbToken) {
-        if (err) {
-          logError('login', 'FBTokenModel.findOne', err);
-          return done(err);
-        }
-
-        if (!fbToken) {
-          fbToken = new FBTokenModel({
-            facebookId: facebookId,
-            token:      longLivedFbAccessToken,
-            scopes:     scopes,
-            expires:    expires
-          });
-
-          return fbToken.save(function(err) {
-            if (err) {
-              logError('login', 'FBTokenModel.save', err);
-              return done(err);
-            }
-
-            if (process.env.DEBUG) {
-              console.log('FB token created: ' + fbToken);
-            }
-
-            return done(null, facebookId);
-          });
-        }
-        fbToken.token   = longLivedFbAccessToken;
-        fbToken.scopes  = scopes;
-        fbToken.expires = expires;
-
-        fbToken.save(function(err) {
-          if (err) {
-            logError('login', 'FBTokenModel.save', err);
-            return done(err);
-          }
-
-          if (process.env.DEBUG) {
-            console.log('FB token created: ' + fbToken);
-          }
-
-          return done(null, facebookId);
-        });
+      var fbToken = new FBTokenModel({
+        facebookId: facebookId,
+        token:      longLivedFbAccessToken,
+        scopes:     scopes,
+        expires:    expires
       });
+
+      return done(null, fbToken);
     });
   });
 };

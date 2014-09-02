@@ -43,54 +43,47 @@ var getFriends = function(req, res) {
     return;
   }
 
-  FBTokenModel.findOne({
-    facebookId: facebookId
-  }, function(err, fbToken) {
+  var fbToken = req.user.fbToken[0];
+
+  if (fb.expired(fbToken)) {
+    return error.unauthorized(res, 'Access token has expired, please log in again', 2);
+  }
+
+  if (fb.needPermissions(fbToken, 'user_friends')) {
+    return error.unauthorized(res, 'Permission required to access user friends', 1);
+  }
+
+  fb.friends(fbToken, function(err, friends, totalCount, errMessageObj) {
     if (err) {
-      logError('getFriends', 'FBTokenModel.findOne', err);
+      logError('getFriends', 'fb.friends', err);
       return error.server(res);
     }
 
-    if (fb.expired(fbToken)) {
-      return error.unauthorized(res, 'Access token has expired, please log in again', 2);
+    if (!friends) {
+      return error.server(res);
     }
 
-    if (fb.needPermissions(fbToken, 'user_friends')) {
-      return error.unauthorized(res, 'Permission required to access user friends', 1);
+    var name = req.query.name;
+
+    if (name) {
+      friends = friends.filter(function(element) {
+        var fullFriendName = element['name'];
+        return fullFriendName.indexOf(name) > -1;
+      });
     }
 
-    fb.friends(fbToken, function(err, friends, totalCount, errMessageObj) {
-      if (err) {
-        logError('getFriends', 'fb.friends', err);
-        return error.server(res);
-      }
+    friends = friends.sort(ascending('name'))
+                     .slice(req.query.offset, req.query.offset + req.query.limit);
 
-      if (!friends) {
-        return error.server(res);
-      }
+    var JSON = {
+      friends: friends
+    };
 
-      var name = req.query.name;
+    if (totalCount) {
+      JSON['total_count'] = totalCount;
+    }
 
-      if (name) {
-        friends = friends.filter(function(element) {
-          var fullFriendName = element['name'];
-          return fullFriendName.indexOf(name) > -1;
-        });
-      }
-
-      friends = friends.sort(ascending('name'))
-                       .slice(req.query.offset, req.query.offset + req.query.limit);
-
-      var JSON = {
-        friends: friends
-      };
-
-      if (totalCount) {
-        JSON['total_count'] = totalCount;
-      }
-
-      return res.json(JSON);
-    });
+    return res.json(JSON);
   });
 };
 
