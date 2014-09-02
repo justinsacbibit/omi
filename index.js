@@ -28,7 +28,7 @@ app.use(bodyParser.urlencoded({
 app.use(function checkSSL(req, res, next) {
   var herokuProxyHeader = req.headers['x-forwarded-proto'];
   if (herokuProxyHeader && herokuProxyHeader !== 'https') {
-    return res.status(401).end('SSL is required');
+    return res.redirect(['https://', req.hostname, req.URL].join(''));
   }
   return next();
 });
