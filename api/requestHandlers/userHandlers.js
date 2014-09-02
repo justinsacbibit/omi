@@ -4,6 +4,17 @@ var UserModel    = require('../model/people/user.js').UserModel
   , fb           = require('../fb.js')
   , paginate     = require('../paginate.js');
 
+var ascending = function(key) {
+  return function(a, b) {
+    if (a[key] < b[key]) {
+      return -1;
+    } else if (a[key] > b[key]) {
+      return 1;
+    }
+    return 0;
+  };
+};
+
 var logError = function(functionName, failure, err) {
   error.log('user', functionName, failure, err);
 };
@@ -67,21 +78,17 @@ var getFriends = function(req, res) {
         });
       }
 
-      friends = friends.sort(function(a, b) {
-        if (a['name'] < b['name']) {
-          return -1;
-        } else if (a['name'] > b['name']) {
-          return 1;
-        }
-        return 0;
-      }).slice(req.query.offset, req.query.offset + req.query.limit);
+      friends = friends.sort(ascending('name'))
+                       .slice(req.query.offset, req.query.offset + req.query.limit);
 
       var JSON = {
         friends: friends
-      }
+      };
+
       if (totalCount) {
         JSON['total_count'] = totalCount;
       }
+
       return res.json(JSON);
     });
   });
