@@ -17,6 +17,10 @@ var Ower = new Schema({
   owers: {
     type: [Schema.Types.ObjectId],
     ref:  'Ower'
+  },
+  omis: {
+    type: [Schema.Types.ObjectId],
+    ref:  'Omi'
   }
 }, {
   discriminatorKey: '_type'

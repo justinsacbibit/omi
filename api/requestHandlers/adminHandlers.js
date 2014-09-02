@@ -3,8 +3,8 @@ var passport    = require('passport')
   , UserModel   = require('../model/people/user.js').UserModel
   , error       = require('./error.js');
 
-var logError = function(functionName, failure) {
-  error.log('admin', functionName, failure);
+var logError = function(functionName, failure, err) {
+  error.log('admin', functionName, failure, err);
 };
 
 var admin = function(req, res, next) {
@@ -13,7 +13,7 @@ var admin = function(req, res, next) {
 
     if (req.headers && req.headers['x-client-id']) {
       if (!req.headers['x-client-secret']) {
-        return error.missingParam('x-client-secret');
+        return error.missingParam(res, 'x-client-secret');
       }
 
       clientId     = req.headers['x-client-id'];
@@ -22,11 +22,11 @@ var admin = function(req, res, next) {
 
     if (req.body && req.body['client_id']) {
       if (!req.body['client_secret']) {
-        return error.missingParam('client_secret');
+        return error.missingParam(res, 'client_secret');
       }
 
       if (clientId || clientSecret) {
-        return error.badRequest('Multiple client credentials found in request', res);
+        return error.badRequest(res, 'Multiple client credentials found in request');
       }
 
       clientId     = req.body['client_id'];
@@ -35,11 +35,11 @@ var admin = function(req, res, next) {
 
     if (req.query && req.query['client_id']) {
       if (!req.query['client_secret']) {
-        return error.missingParam('client_secret');
+        return error.missingParam(res, 'client_secret');
       }
 
       if (clientId || clientSecret) {
-        return error.badRequest('Multiple client credentials found in request', res);
+        return error.badRequest(res, 'Multiple client credentials found in request');
       }
 
       clientId     = req.query['client_id'];
@@ -47,7 +47,7 @@ var admin = function(req, res, next) {
     }
 
     if (!clientId) {
-      return error.missingParam('Missing client ID in request', res);
+      return error.missingParam(res, 'Missing client ID in request');
     }
 
     if (clientId !== process.env.ADMIN_ID) {
@@ -58,13 +58,13 @@ var admin = function(req, res, next) {
       clientId: clientId
     }, function(err, client) {
       if (err) {
-        logError('admin', 'ClientModel.findOne');
+        logError('admin', 'ClientModel.findOne', err);
         return error.server(res);
       }
 
       var checkClient = function() {
         if (client.clientSecret != clientSecret) {
-          return error.unauthorized('Invalid client secret', res);
+          return error.unauthorized(res, 'Invalid client secret');
         }
 
         return next();
@@ -79,7 +79,7 @@ var admin = function(req, res, next) {
 
         return client.save(function(err) {
           if (err) {
-            logError('admin', 'ClientModel.save');
+            logError('admin', 'ClientModel.save', err);
             return error.server(res);
           }
 
@@ -95,8 +95,8 @@ var getClients = function() {
   return function(req, res) {
     ClientModel.find(function(err, clients) {
       if (err) {
-        console.log('adminHandlers.js: getClients(): Error retrieving all clients: ' + err)
-        return res.status(500).json(error.server);
+        console.log('adminHandlers.js: getClients(): Error retrieving all clients: ' + err);
+        return error.server(res);
       }
 
       return res.json(clients);
@@ -112,7 +112,7 @@ var deleteClient = function() {
       clientId: clientId
     }).remove(function(err) {
       if (err) {
-        logError('deleteClient', 'ClientModel.remove');
+        logError('deleteClient', 'ClientModel.remove', err);
         return error.server(res);
       }
 
@@ -130,11 +130,11 @@ var newClient = function() {
       , clientSecret = req.body['secret'];
 
     if (!name) {
-      return error.missingParam('name', res);
+      return error.missingParam(res, 'name');
     } else if (!clientId) {
-      return error.missingParam('id', res);
+      return error.missingParam(res, 'id');
     } else if (!clientSecret) {
-      return error.missingParam('secret', res);
+      return error.missingParam(res, 'secret');
     }
 
     ClientModel.findOne({
@@ -146,7 +146,7 @@ var newClient = function() {
       }
 
       if (client) {
-        return error.exists('Client', res);
+        return error.exists(res, 'Client');
       }
 
       client = new ClientModel({

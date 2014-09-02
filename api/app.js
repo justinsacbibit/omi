@@ -11,6 +11,6 @@ exports.use = function(express, app, mongoose, passport, nodemailer) {
   app.use(passport.initialize());
   strategies.init(passport);
 
-  app.use('/api/v1', routes.use(express.Router(), passport));
+  app.use('/api/v1', routes.use(express.Router(), passport, middleware.ownership()));
   app.use(middleware.notFound());
 }

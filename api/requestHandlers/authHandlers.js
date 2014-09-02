@@ -43,7 +43,7 @@ var updateToken = function(client, user, facebookId, res) {
         facebookId: facebookId
       });
 
-      token.save(function(err) {
+      return token.save(function(err) {
         if (err) {
           logError('updateToken', 'AccessTokenModel.save');
           return error.server(res);
@@ -72,11 +72,11 @@ var login = function(req, res) {
     , fbAccessToken = req.body['fb_access_token']
 
   if (!clientId) {
-    return error.missingParam('client_id', res);
+    return error.missingParam(res, 'client_id');
   } else if (!clientSecret) {
-    return error.missingParam('client_secret', res);
+    return error.missingParam(res, 'client_secret');
   } else if (!fbAccessToken) {
-    return error.missingParam('fb_access_token', res);
+    return error.missingParam(res, 'fb_access_token');
   }
 
   ClientModel.findOne({
@@ -88,11 +88,11 @@ var login = function(req, res) {
     }
 
     if (!client) {
-      return error.notFound('Client', res);
+      return error.notFound(res, 'Client');
     }
 
     if (client.clientSecret !== clientSecret) {
-      return error.unauthorized('Wrong client secret')
+      return error.unauthorized(res, 'Wrong client secret')
     }
 
     fb.login(fbAccessToken, function(err, facebookId, errMessageObj) {
@@ -102,7 +102,7 @@ var login = function(req, res) {
       }
 
       if (!facebookId) {
-        return error.gateway(errMessageObj['message'], res);
+        return error.gateway(res, errMessageObj['message']);
       }
 
       UserModel.findOne({
@@ -121,7 +121,7 @@ var login = function(req, res) {
             }
 
             if (!name) {
-              return error.gateway(errMessageObj['message'], res);
+              return error.gateway(res, errMessageObj['message']);
             }
 
             var user = new UserModel({
@@ -159,13 +159,13 @@ var logout = function(req, res) {
         token = credentials;
       }
     } else {
-      return error.unauthorized('Invalid authorization header', res);
+      return error.unauthorized(res, 'Invalid authorization header');
     }
   }
 
   if (req.body && req.body.access_token) {
     if (token) {
-      return error.badRequest('Multiple tokens found in request', res);
+      return error.badRequest(res, 'Multiple tokens found in request');
     }
 
     token = req.body.access_token;
@@ -173,14 +173,14 @@ var logout = function(req, res) {
 
   if (req.query && req.query.access_token) {
     if (token) {
-      return error.badRequest('Multiple tokens found in request', res);
+      return error.badRequest(res, 'Multiple tokens found in request');
     }
 
     token = req.query.access_token;
   }
 
   if (!token) {
-    return error.unauthorized('Missing access token in request', res);
+    return error.unauthorized(res, 'Missing access token in request');
   }
 
   AccessTokenModel.findOne({
@@ -192,7 +192,7 @@ var logout = function(req, res) {
     }
 
     if (!accessToken) {
-      return error.unauthorized('Invalid access token', res);
+      return error.unauthorized(res, 'Invalid access token');
     }
 
     var conditions = {
