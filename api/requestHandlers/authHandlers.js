@@ -8,7 +8,7 @@ var passport         = require('passport')
   , error            = require('./error.js');
 
 var logError = function(functionName, failure) {
-  console.log(error.builder('auth', functionName, failure + ' failed'));
+  error.log('auth', functionName, failure);
 };
 
 var updateToken = function(client, user, facebookId, res) {

@@ -3,6 +3,94 @@ var passport    = require('passport')
   , UserModel   = require('../model/people/user.js').UserModel
   , error       = require('./error.js');
 
+var logError = function(functionName, failure) {
+  error.log('admin', functionName, failure);
+};
+
+var admin = function(req, res, next) {
+    var clientId
+      , clientSecret;
+
+    if (req.headers && req.headers['x-client-id']) {
+      if (!req.headers['x-client-secret']) {
+        return error.missingParam('x-client-secret');
+      }
+
+      clientId     = req.headers['x-client-id'];
+      clientSecret = req.headers['x-client-secret'];
+    }
+
+    if (req.body && req.body['client_id']) {
+      if (!req.body['client_secret']) {
+        return error.missingParam('client_secret');
+      }
+
+      if (clientId || clientSecret) {
+        return error.badRequest('Multiple client credentials found in request', res);
+      }
+
+      clientId     = req.body['client_id'];
+      clientSecret = req.body['client_secret'];
+    }
+
+    if (req.query && req.query['client_id']) {
+      if (!req.query['client_secret']) {
+        return error.missingParam('client_secret');
+      }
+
+      if (clientId || clientSecret) {
+        return error.badRequest('Multiple client credentials found in request', res);
+      }
+
+      clientId     = req.query['client_id'];
+      clientSecret = req.query['client_secret'];
+    }
+
+    if (!clientId) {
+      return error.missingParam('Missing client ID in request', res);
+    }
+
+    if (clientId !== process.env.ADMIN_ID) {
+      return error.forbidden(res);
+    }
+
+    ClientModel.findOne({
+      clientId: clientId
+    }, function(err, client) {
+      if (err) {
+        logError('admin', 'ClientModel.findOne');
+        return error.server(res);
+      }
+
+      var checkClient = function() {
+        if (client.clientSecret != clientSecret) {
+          return error.unauthorized('Invalid client secret', res);
+        }
+
+        return next();
+      }
+
+      if (!client) {
+        client = new ClientModel({
+          name:        'Admin',
+          clientId:     process.env.ADMIN_ID,
+          clientSecret: process.env.ADMIN_SECRET
+        });
+
+        return client.save(function(err) {
+          if (err) {
+            logError('admin', 'ClientModel.save');
+            return error.server(res);
+          }
+
+          return checkClient();
+        });
+      }
+
+      return checkClient();
+    });
+};
+
 var getClients = function() {
   return function(req, res) {
     ClientModel.find(function(err, clients) {
@@ -12,6 +100,25 @@ var getClients = function() {
       }
 
       return res.json(clients);
+    });
+  };
+};
+
+var deleteClient = function() {
+  return function(req, res) {
+    var clientId = req.param('client_id');
+
+    ClientModel.find({
+      clientId: clientId
+    }).remove(function(err) {
+      if (err) {
+        logError('deleteClient', 'ClientModel.remove');
+        return error.server(res);
+      }
+
+      return res.json({
+        success: true
+      });
     });
   };
 };
@@ -78,36 +185,26 @@ var getUsers = function() {
 };
 
 exports.clients = [
-  passport.authenticate(['oauth2-client-password'], {
-    session: false
-  }),
+  admin,
   getClients()
 ];
 
 exports.newClient = [
-  passport.authenticate(['oauth2-client-password'], {
-    session: false
-  }),
+  admin,
   newClient()
 ];
 
 exports.client = [
-  passport.authenticate(['oauth2-client-password'], {
-    session: false
-  }),
+  admin,
   getClients()
 ];
 
 exports.deleteClient = [
-  passport.authenticate(['oauth2-client-password'], {
-    session: false
-  }),
-  getClients()
+  admin,
+  deleteClient()
 ];
 
 exports.users = [
-  passport.authenticate(['oauth2-client-password'], {
-    session: false
-  }),
+  admin,
   getUsers()
 ];

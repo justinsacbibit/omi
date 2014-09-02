@@ -13,6 +13,8 @@
 <ul id='links'>
   
     
+  
+    
     <li><a href='#/response-status-codes'>Response status codes</a></li>
     
   
@@ -37,10 +39,48 @@
     </ul>
   </li>
 
+  <li><h2>user info</h2>
+    <ul>
+    
+              
+        <li class=''><a href='#'></a></li>
+      
+    
+              
+        <li class='GET'><a href='#/user-info'>User Info</a></li>
+      
+    
+    </ul>
+  </li>
+
 </ul>
 </nav>
 
 <section id='content'>
+
+  <article class='GET'>
+    <a name='/user-info' href='#/user-info'><h2><code><b>GET</b> /userInfo</code> User Info</h2></a>
+    <section class='body'>
+      <p>This method retrieves user info for an access token.</p>
+
+<h3 id="request">Request</h3>
+
+<ul>
+  <li>The headers must include a <strong>valid access token</strong>.
+<code>Authorization: Bearer TOKEN</code></li>
+</ul>
+
+<h3 id="response">Response</h3>
+
+<p><code>{
+  "facebook_id": 3847140334283,
+  "name": "Justin Sacbibit"
+}</code></p>
+
+<p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
+
+    </section>
+  </article>
 
   <article class=''>
     <a name='/response-status-codes' href='#/response-status-codes'><h2>Response status codes</h2></a>

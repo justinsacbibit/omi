@@ -3,6 +3,7 @@ var adminHandlers = require('./requestHandlers/adminHandlers.js')
 
 var routes = function(Router, passport) {
   // Admin endpoints
+  // TODO: Create OSX app that uses these endpoints
   Router.route('/admin/clients')
   .get(adminHandlers.clients)
   .post(adminHandlers.newClient);
@@ -33,7 +34,8 @@ var routes = function(Router, passport) {
     });
   });
 
-
+  // Router.route('/users')
+  // .
 };
 
 exports.use = function(Router, passport) {
