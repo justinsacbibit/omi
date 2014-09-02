@@ -19,7 +19,7 @@ var https      = require('https')
   , path       = require('path')
   , api        = require('./api/app.js');
 
-var port = process.env.PORT || process.env.SSL ? 443 : 8080;
+var port = process.env.PORT || (process.env.SSL ? 443 : 8080);
 
 app.use(bodyParser.urlencoded({
   extended: true
