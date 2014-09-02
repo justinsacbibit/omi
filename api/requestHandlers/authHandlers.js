@@ -9,10 +9,6 @@ var passport         = require('passport')
 var updateToken = function(client, user, facebookId, res) {
   var tokenValue = crypto.randomBytes(32).toString('base64');
 
-  var info = {
-    scope: '*'
-  };
-
   AccessTokenModel.findOne({
     clientId:   client.clientId,
     facebookId: facebookId
@@ -69,6 +65,18 @@ var updateToken = function(client, user, facebookId, res) {
 };
 
 var login = function(req, res) {
+  if (!req.body['client_id']) {
+    return res.status(403).send('Forbidden');
+  }
+
+  if (!req.body['client_secret']) {
+    return res.status(403).send('Forbidden');
+  }
+
+  if (!req.body['fb_access_token']) {
+    return res.status(403).send('Forbidden');
+  }
+
   ClientModel.findOne({
     clientId: req.body['client_id']
   }, function(err, client) {

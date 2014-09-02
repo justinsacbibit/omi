@@ -2,6 +2,7 @@ var adminHandlers = require('./requestHandlers/adminHandlers.js')
   , authHandlers  = require('./requestHandlers/authHandlers.js');
 
 var routes = function(Router, passport) {
+  // Admin endpoints
   Router.route('/admin/clients')
   .get(adminHandlers.clients)
   .post(adminHandlers.newClient);
@@ -14,20 +15,25 @@ var routes = function(Router, passport) {
   .get(adminHandlers.users)
   .post(adminHandlers.users);
 
+  // Login / logout endpoints
   Router.route('/token')
   .post(authHandlers.login)
   .delete(authHandlers.logout);
 
-  Router.route('/userInfo')
-  .get(passport.authenticate('bearer', {
+  // All endpoints require an access token
+  var token = passport.authenticate('bearer', {
     session: false
-  }), function(req, res) {
+  });
+
+  Router.route('/userInfo')
+  .get(token, function(req, res) {
     res.json({
       facebook_id: req.user.facebookId,
-      name: req.user.name,
-      scope: req.authInfo.scope
+      name: req.user.name
     });
   });
+
+
 };
 
 exports.use = function(Router, passport) {
