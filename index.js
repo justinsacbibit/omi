@@ -36,6 +36,9 @@ app.use(function checkSSL(req, res, next) {
 // Serve homepage
 app.use('/', express.static(path.join(__dirname, 'public')));
 
+// Serve API documentation
+app.use('/docs', express.static(path.join(__dirname, 'api', 'docs', '_site')));
+
 // REST API
 api.use(express, app, mongoose, passport, nodemailer);
 
