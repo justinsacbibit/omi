@@ -5,20 +5,20 @@ module.exports = function(req, res, conditions) {
     , limit  = req.query.limit;
 
   if (!offset) {
-    error.missingParam('offset', res);
+    error.missingParam(res, 'offset');
     return false;
   } else if (!limit) {
-    error.missingParam('limit', res);
+    error.missingParam(res, 'limit');
     return false;
   }
 
   if (offset < 0) {
-    error.badRequest('Offset parameter must be greater than or equal to zero', res);
+    error.badRequest(res, 'Offset parameter must be greater than or equal to zero');
     return false;
   }
 
   if (limit <= 0) {
-    error.badRequest('Limit parameter must be greater than zero', res);
+    error.badRequest(res, 'Limit parameter must be greater than zero');
     return false;
   }
 
