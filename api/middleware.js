@@ -1,7 +1,7 @@
 var error = require('./requestHandlers/error.js');
 
 var notFound = function(req, res, next) {
-  return error.notFound('Endpoint', res);
+  return error.notFound(res, 'Endpoint');
 };
 
 var ownership = function(req, res, next) {

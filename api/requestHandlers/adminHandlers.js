@@ -108,7 +108,7 @@ var deleteClient = function() {
   return function(req, res) {
     var clientId = req.param('client_id');
 
-    ClientModel.find({
+    ClientModel.findOne({
       clientId: clientId
     }).remove(function(err) {
       if (err) {
@@ -119,6 +119,27 @@ var deleteClient = function() {
       return res.json({
         success: true
       });
+    });
+  };
+};
+
+var getClient = function() {
+  return function(req, res) {
+    var clientId = req.param('client_id');
+
+    ClientModel.findOne({
+      clientId: clientId
+    }, function(err, client) {
+      if (err) {
+        logError('getClient', 'ClientModel.findOne', err);
+        return error.server(res);
+      }
+
+      if (!client) {
+        return error.notFound(res, 'Client');
+      }
+
+      res.json(client);
     });
   };
 };
@@ -196,7 +217,7 @@ exports.newClient = [
 
 exports.client = [
   admin,
-  getClients()
+  getClient()
 ];
 
 exports.deleteClient = [

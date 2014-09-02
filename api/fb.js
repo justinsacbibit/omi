@@ -110,6 +110,10 @@ exports.login = function(fbAccessToken, done) {
               return done(err);
             }
 
+            if (process.env.DEBUG) {
+              console.log('FB token created: ' + fbToken);
+            }
+
             return done(null, facebookId);
           });
         }
@@ -121,6 +125,10 @@ exports.login = function(fbAccessToken, done) {
           if (err) {
             logError('login', 'FBTokenModel.save', err);
             return done(err);
+          }
+
+          if (process.env.DEBUG) {
+            console.log('FB token created: ' + fbToken);
           }
 
           return done(null, facebookId);
@@ -162,6 +170,9 @@ exports.name = function(fbAccessToken, done) {
 };
 
 exports.expired = function(fbToken) {
+  if (process.env.DEBUG) {
+    console.log('FB token ' + fbToken.token + ' expires in ' + (fbToken.expires - Date.now()) + ' seconds.');
+  }
   return (fbToken.expires - Date.now()) < 0;
 }
 
