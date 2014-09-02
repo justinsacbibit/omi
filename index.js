@@ -1,6 +1,7 @@
 /**
  * ENVIRONMENT VARIABLES
  * TOKEN_LIFE: Number of seconds before a token expires
+ * LOG: Boolean for verbose logging
  * APP_TOKEN: Facebook app token
  * APP_ID: Facebook app ID
  * ADMIN_ID: Client ID for admin program

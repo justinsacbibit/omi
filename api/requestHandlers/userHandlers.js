@@ -41,11 +41,11 @@ var getFriends = function(req, res) {
     }
 
     if (fb.expired(fbToken)) {
-      return error.unauthorized('Access token has expired, please log in again', res, 2);
+      return error.unauthorized(res, 'Access token has expired, please log in again', 2);
     }
 
     if (fb.needPermissions(fbToken, 'user_friends')) {
-      return error.unauthorized('message', res, 1);
+      return error.unauthorized(res, 'Permission required to access user friends', 1);
     }
 
     fb.friends(facebookId, function(err, friends, totalCount, errMessageObj) {
