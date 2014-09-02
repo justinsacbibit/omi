@@ -4,7 +4,12 @@ var passport         = require('passport')
   , ClientModel      = require('../model/auth/client.js').ClientModel
   , FBTokenModel     = require('../model/auth/fbToken.js').FBTokenModel
   , UserModel        = require('../model/people/user.js').UserModel
-  , fb               = require('../fb.js');
+  , fb               = require('../fb.js')
+  , error            = require('./error.js');
+
+var logError = function(functionName, failure) {
+  console.log(error.builder('auth', functionName, failure + ' failed'));
+};
 
 var updateToken = function(client, user, facebookId, res) {
   var tokenValue = crypto.randomBytes(32).toString('base64');
@@ -14,9 +19,8 @@ var updateToken = function(client, user, facebookId, res) {
     facebookId: facebookId
   }, function(err, token) {
     if (err) {
-      return res.status(500).json({
-        error: err.message
-      });
+      logError('updateToken', 'AccessTokenModel.findOne');
+      return error.server(res);
     }
 
     var successJSON = function(token) {
@@ -41,9 +45,8 @@ var updateToken = function(client, user, facebookId, res) {
 
       token.save(function(err) {
         if (err) {
-          return res.status(500).json({
-            error: err.message
-          });
+          logError('updateToken', 'AccessTokenModel.save');
+          return error.server(res);
         }
 
         return res.status(201).json(successJSON(token));
@@ -54,9 +57,8 @@ var updateToken = function(client, user, facebookId, res) {
     token.created = Date.now();
     token.save(function(err) {
       if (err) {
-        return res.status(500).json({
-          error: err.message
-        });
+        logError('updateToken', 'AccessTokenModel.save');
+        return error.server(res);
       }
 
       return res.status(201).json(successJSON(token));
@@ -65,74 +67,61 @@ var updateToken = function(client, user, facebookId, res) {
 };
 
 var login = function(req, res) {
-  if (!req.body['client_id']) {
-    return res.status(403).send('Forbidden');
-  }
+  var clientId = req.body['client_id']
+    , clientSecret = req.body['client_secret']
+    , fbAccessToken = req.body['fb_access_token']
 
-  if (!req.body['client_secret']) {
-    return res.status(403).send('Forbidden');
-  }
-
-  if (!req.body['fb_access_token']) {
-    return res.status(403).send('Forbidden');
+  if (!clientId) {
+    return error.missingParam('client_id', res);
+  } else if (!clientSecret) {
+    return error.missingParam('client_secret', res);
+  } else if (!fbAccessToken) {
+    return error.missingParam('fb_access_token', res);
   }
 
   ClientModel.findOne({
-    clientId: req.body['client_id']
+    clientId: clientId
   }, function(err, client) {
     if (err) {
-      return res.status(500).json({
-        error: err.message
-      });
+      logError('login', 'ClientModel.findOne');
+      return error.server(res);
     }
 
     if (!client) {
-      return res.status(404).json({
-        error: 'Client not found'
-      })
+      return error.notFound('Client', res);
     }
 
-    if (client.clientSecret !== req.body['client_secret']) {
-      return res.status(403).json({
-        error: 'Wrong client secret'
-      });
+    if (client.clientSecret !== clientSecret) {
+      return error.unauthorized('Wrong client secret')
     }
 
-    var fbAccessToken = req.body['fb_access_token'];
     fb.login(fbAccessToken, function(err, facebookId, errMessageObj) {
       if (err) {
-        return res.status(500).json({
-          error: err.message
-        });
+        logError('login', 'fb.login');
+        return error.server(res);
       }
 
       if (!facebookId) {
-        return res.status(500).json({
-          error: errMessageObj['message']
-        });
+        return error.gateway(errMessageObj['message'], res);
       }
 
       UserModel.findOne({
         facebookId: facebookId
       }, function(err, user) {
         if (err) {
-          return res.status(500).json({
-            error: err.message
-          });
+          logError('login', 'UserModel.findOne');
+          return error.server(res);
         }
 
         if (!user) {
           return fb.name(fbAccessToken, function(err, name, errMessageObj) {
             if (err) {
-              return res.status(500).json({
-                error: err.message
-              });
+              logError('login', 'fb.name');
+              return error.server(res);
             }
 
             if (!name) {
-              return res.status(500).json({
-                error: errMessageObj['message']
-              });
+              return error.gateway(errMessageObj['message'], res);
             }
 
             var user = new UserModel({
@@ -142,9 +131,8 @@ var login = function(req, res) {
 
             user.save(function(err) {
               if (err) {
-                return res.status(500).json({
-                  error: err.message
-                });
+                logError('login', 'UserModel.save');
+                return error.server(res);
               }
 
               return updateToken(client, user, facebookId, res);
@@ -171,17 +159,13 @@ var logout = function(req, res) {
         token = credentials;
       }
     } else {
-      return req.status(400).json({
-        error: 'Invalid authorization header'
-      });
+      return error.unauthorized('Invalid authorization header', res);
     }
   }
 
   if (req.body && req.body.access_token) {
     if (token) {
-      return res.status(400).json({
-        error: 'Multiple tokens found'
-      });
+      return error.badRequest('Multiple tokens found in request', res);
     }
 
     token = req.body.access_token;
@@ -189,33 +173,26 @@ var logout = function(req, res) {
 
   if (req.query && req.query.access_token) {
     if (token) {
-      return res.status(400).json({
-        error: 'Multiple tokens found'
-      });
+      return error.badRequest('Multiple tokens found in request', res);
     }
 
     token = req.query.access_token;
   }
 
   if (!token) {
-    return res.status(401).json({
-      error: 'Missing access token'
-    });
+    return error.unauthorized('Missing access token in request', res);
   }
 
   AccessTokenModel.findOne({
     token: token
   }, function(err, accessToken) {
     if (err) {
-      return res.status(500).json({
-        error: err.message
-      });
+      logError('logout', 'AccessTokenModel.findOne');
+      return error.server(res);
     }
 
     if (!accessToken) {
-      return res.status(404).json({
-        error: 'Invalid access token'
-      });
+      return error.notFound('Access token', res);
     }
 
     var conditions = {
@@ -225,15 +202,14 @@ var logout = function(req, res) {
 
     FBTokenModel.remove(conditions, function(err) {
       if (err) {
-        console.log('Error removing Facebook token when logging out: %s', err.message);
+        logError('logout', 'FBTokenModel.remove');
       }
     });
 
     AccessTokenModel.remove(conditions, function(err) {
       if (err) {
-        return res.status(500).json({
-          error: err.message
-        });
+        logError('logout', 'AccessTokenModel.remove');
+        return error.server(res);
       }
 
       return res.json({
