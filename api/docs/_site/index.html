@@ -17,19 +17,11 @@
     
   
     
-    <li><a href='#/authentication'>Authenticate</a></li>
-    
-  
-    
-  
-    
-  
-    
   
     
   
   
-  <li><h2>stuff</h2>
+  <li><h2>authentication</h2>
     <ul>
     
               
@@ -37,13 +29,9 @@
       
     
               
-        <li class='GET'><a href='#/get-stuff'>Get stuff</a></li>
+        <li class='DELETE'><a href='#/logout'>Log out</a></li>
               
-        <li class='POST'><a href='#/post-a-thing'>Post a thing</a></li>
-              
-        <li class='PUT'><a href='#/put-a-thing'>Update a thing</a></li>
-              
-        <li class='DELETE'><a href='#/delete-a-thing'>Delete a thing</a></li>
+        <li class='POST'><a href='#/login'>Log in</a></li>
       
     
     </ul>
@@ -59,25 +47,25 @@
     <section class='body'>
       <h3 id="success">Success</h3>
 
-<p>Successes differ from errors in that their body may not be a simple response object with a code and a message. The headers however are consistent across all calls:</p>
+<p>Successes differ from errors in that their body may not be a simple response object with a message. The headers however are consistent across all calls:</p>
 
 <ul>
   <li><code>GET</code>, <code>PUT</code>, <code>DELETE</code> returns <code>200 OK</code> on success,</li>
   <li><code>POST </code> returns 201 on success,</li>
 </ul>
 
-<p>When <a href="#get-stuff">retrieving stuff</a> for example:</p>
+<p>When <a href="#login">logging in</a> for example:</p>
 
 <p><code>Status: 200 OK</code>
 <code>{
-    {
-        id: thing_1,
-        name: 'My first thing'
-    },
-    {
-        id: thing_2,
-        name: 'My second thing'
-    }
+  "token": {
+    "access_token": "5ZLwlwz94d9w03323z3oItxCGonmdHoETtIrjtaOv70=",
+    "expires": "5184000"
+  },
+  "user": {
+    "facebook_id": 3871019282387,
+    "name": "Justin Sacbibit"
+  }
 }</code></p>
 
 <h3 id="error">Error</h3>
@@ -85,67 +73,44 @@
 <p>Error responses are simply returning <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">standard HTTP error codes</a> along with some additional information:</p>
 
 <ul>
-  <li>The error code is sent back as a status header,</li>
-  <li>The body includes an object describing both the code and message (for debugging and/or display purposes),</li>
+  <li>The body includes an object with an message (for debugging and/or display purposes),</li>
 </ul>
 
 <p>For a call with an invalid authentication token for example:</p>
 
 <p><code>Status: 401 Access denied</code>
 <code>{
-    code: 401,
-    message: 'Access denied: invalid authentication token.'
+  error: {
+    message: 'Invalid access token'
+  }
 }</code></p>
 
     </section>
   </article>
 
-  <article class=''>
-    <a name='/authentication' href='#/authentication'><h2>Authenticate</h2></a>
+  <article class='DELETE'>
+    <a name='/logout' href='#/logout'><h2><code><b>DELETE</b> /token</code> Log out</h2></a>
     <section class='body'>
-      <p>This method allows users to retrieve stuff.</p>
-
-<h3 id="response">Response</h3>
-
-<p>Sends back a collection of things.</p>
-
-<p><code>Authentication: bearer TOKEN</code>
-<code>{
-    id: thing_2,
-    name: 'My second thing'
-}</code></p>
-
-<p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
-
-    </section>
-  </article>
-
-  <article class='GET'>
-    <a name='/get-stuff' href='#/get-stuff'><h2><code><b>GET</b> /stuff</code> Get stuff</h2></a>
-    <section class='body'>
-      <p>This method allows users to retrieve stuff.</p>
+      <p>This method logs out a user.</p>
 
 <h3 id="request">Request</h3>
 
 <ul>
-  <li>The headers must include a <strong>valid authentication token</strong>.</li>
+  <li>The headers must include a <strong>valid access token</strong>.
+<code>Authorization: Bearer TOKEN</code></li>
 </ul>
 
 <h3 id="response">Response</h3>
 
-<p>Sends back a collection of things.</p>
-
-<p><code>Status: 200 OK</code>
-<code>{
-    {
-        id: thing_1,
-        name: 'My first thing'
-    },
-    {
-        id: thing_2,
-        name: 'My second thing'
-    }
+<p><code>{
+  "success": true
 }</code></p>
+
+<h3 id="implementation-notes">Implementation Notes</h3>
+
+<ul>
+  <li>The access_token will become invalidated, and should no longer be kept on the client.</li>
+</ul>
 
 <p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
 
@@ -153,98 +118,49 @@
   </article>
 
   <article class='POST'>
-    <a name='/post-a-thing' href='#/post-a-thing'><h2><code><b>POST</b> /stuff</code> Post a thing</h2></a>
+    <a name='/login' href='#/login'><h2><code><b>POST</b> /token</code> Log in</h2></a>
     <section class='body'>
-      <p>This method allows users to create a new thing.</p>
+      <p>This method authenticates a user.</p>
 
 <h3 id="request">Request</h3>
 
 <ul>
-  <li>The headers must include a <strong>valid authentication token</strong>.</li>
-  <li><strong>The body can’t be empty</strong> and must include at least the name attribute, a <code>string</code> that will be used as the name of the thing.</li>
+  <li><strong>The body can’t be empty</strong> and must include:
+    <ul>
+      <li>client_id, issued by the server administrator.</li>
+      <li>client_secret, issued by the server administrator.</li>
+      <li>fb_access_token, obtained from a user logging in to Facebook</li>
+    </ul>
+  </li>
 </ul>
 
-<p><code>Authentication: bearer TOKEN</code>
-<code>{
-    name: 'My new thing'
+<p><code>{
+  "client_id": bestapp,
+  "client_secret": fj9a8sjefansdfkjasdfasd,
+  "fb_access_token": "sdfkljsdfja39nassf9asdf"
 }</code></p>
 
 <h3 id="response">Response</h3>
 
-<p><strong>If succeeds</strong>, returns the created thing.</p>
+<p>Sends back a token and user data.</p>
 
-<p><code>Status: 201 Created</code>
-<code>{
-    id: new_thing,
-    name: 'My new thing'
+<p><code>{
+  "token": {
+    "access_token": "5ZLwlwz94d9w03323z3oItxCGonmdHoETtIrjtaOv70=",
+    "expires": "5184000"
+  },
+  "user": {
+    "facebook_id": 3871019282387,
+    "name": "Justin Sacbibit"
+  }
 }</code></p>
 
-<p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
-
-    </section>
-  </article>
-
-  <article class='PUT'>
-    <a name='/put-a-thing' href='#/put-a-thing'><h2><code><b>PUT</b> /stuff/:id</code> Update a thing</h2></a>
-    <section class='body'>
-      <p>This method allows the user to retrieve his stuff.</p>
-
-<h3 id="request">Request</h3>
+<h3 id="implementation-notes">Implementation Notes</h3>
 
 <ul>
-  <li><strong><code>:id</code></strong> is the id the thing to update.</li>
-  <li>The headers must include a <strong>valid authentication token</strong>.</li>
-  <li><strong>The body can’t be empty</strong> and must include at least the name attribute, a <code>string</code> that will be used as the name of the thing.</li>
+  <li>The fb_access_token should be discarded, while the access_token should be saved.</li>
+  <li>The access_token is required for most API calls.</li>
 </ul>
-
-<p><code>Authentication: bearer f862f658-ad89-4fcb-995b-7a4c50554ff6</code>
-<code>{
-    name: 'My new thing'
-}</code></p>
-
-<h3 id="response">Response</h3>
-
-<p>Sends back a collection of things.</p>
-
-<p><code>Status: 200 OK</code>
-<code>{
-    {
-        id: thing_1,
-        name: 'My first thing'
-    },
-    {
-        id: thing_2,
-        name: 'My second thing'
-    }
-}</code></p>
-
-<p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
-
-    </section>
-  </article>
-
-  <article class='DELETE'>
-    <a name='/delete-a-thing' href='#/delete-a-thing'><h2><code><b>DELETE</b> /stuff/:id</code> Delete a thing</h2></a>
-    <section class='body'>
-      <p>This method allows the user to post a new thing to his stuff.</p>
-
-<h3 id="request">Request</h3>
-
-<ul>
-  <li><strong><code>:id</code></strong> is the id the thing to delete.</li>
-  <li>The headers must include a <strong>valid authentication token</strong>.</li>
-  <li><strong>The body is omitted</strong>.</li>
-</ul>
-
-<h3 id="response">Response</h3>
-
-<p>Sends back a collection of things.</p>
-
-<p><code>Status: 200 Deleted</code>
-<code>{
-    code: 200,
-    message: 'Your thing (id: 736) was deleted'
-}</code></p>
 
 <p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
 

@@ -1,0 +1,43 @@
+<p>This method authenticates a user.</p>
+
+<h3 id="request">Request</h3>
+
+<ul>
+  <li><strong>The body can’t be empty</strong> and must include:
+    <ul>
+      <li>client_id, issued by the server administrator.</li>
+      <li>client_secret, issued by the server administrator.</li>
+      <li>fb_access_token, obtained from a user logging in to Facebook</li>
+    </ul>
+  </li>
+</ul>
+
+<p><code>{
+  "client_id": bestapp,
+  "client_secret": fj9a8sjefansdfkjasdfasd,
+  "fb_access_token": "sdfkljsdfja39nassf9asdf"
+}</code></p>
+
+<h3 id="response">Response</h3>
+
+<p>Sends back a token and user data.</p>
+
+<p><code>{
+  "token": {
+    "access_token": "5ZLwlwz94d9w03323z3oItxCGonmdHoETtIrjtaOv70=",
+    "expires": "5184000"
+  },
+  "user": {
+    "facebook_id": 3871019282387,
+    "name": "Justin Sacbibit"
+  }
+}</code></p>
+
+<h3 id="implementation-notes">Implementation Notes</h3>
+
+<ul>
+  <li>The fb_access_token should be discarded, while the access_token should be saved.</li>
+  <li>The access_token is required for most API calls.</li>
+</ul>
+
+<p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>

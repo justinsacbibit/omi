@@ -192,7 +192,7 @@ var logout = function(req, res) {
     }
 
     if (!accessToken) {
-      return error.notFound('Access token', res);
+      return error.unauthorized('Invalid access token', res);
     }
 
     var conditions = {
