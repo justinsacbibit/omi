@@ -21,12 +21,6 @@ var https      = require('https')
 
 var port = process.env.PORT || process.env.SSL ? 443 : 8080;
 
-// Load SSL Certificate
-var options = {
-  key:  fs.readFileSync('./sslcert/key.pem'),
-  cert: fs.readFileSync('./sslcert/cert.pem')
-}
-
 app.use(bodyParser.urlencoded({
   extended: true
 }));
@@ -44,5 +38,10 @@ var serverStart = function() {
 if (process.env.NODE_ENV === 'production' || !process.env.SSL) {
   app.listen(port, serverStart);
 } else {
+  // Load SSL Certificate
+  var options = {
+    key:  fs.readFileSync('./sslcert/key.pem'),
+    cert: fs.readFileSync('./sslcert/cert.pem')
+  }
   https.createServer(options, app).listen(port, serverStart);
 }
