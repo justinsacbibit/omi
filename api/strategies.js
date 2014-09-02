@@ -71,7 +71,9 @@ var bearerStrategy = new BearerStrategy(function(accessToken, done) {
       });
     }
 
-    UserModel.findById(token.facebookId, function(err, user) {
+    UserModel.findOne({
+      facebookId: token.facebookId
+    }, function(err, user) {
       if (err) {
         return done(err);
       }
@@ -81,11 +83,8 @@ var bearerStrategy = new BearerStrategy(function(accessToken, done) {
           message: 'Unknown user'
         });
       }
-
-      var info = {
-        scope: '*'
-      }
-      return done(null, user, info);
+      
+      return done(null, user);
     });
   });
 });
