@@ -10,8 +10,7 @@ var User = Ower.extend({
     unique:   true
   },
   email: {
-    type:     String,
-    unique:   true
+    type: String
   }
 });
 

@@ -3,7 +3,6 @@ var db         = require('./db.js')
 
 var middleware = require('./middleware.js')
   , strategies = require('./strategies.js')
-  , oauth2     = require('./oauth2.js')
   , routes     = require('./routes.js');
 
 exports.use = function(express, app, mongoose, passport, nodemailer) {
@@ -12,6 +11,6 @@ exports.use = function(express, app, mongoose, passport, nodemailer) {
   app.use(passport.initialize());
   strategies.init(passport);
 
-  app.use('/api/v1', routes.use(express.Router(), passport, oauth2));
+  app.use('/api/v1', routes.use(express.Router(), passport));
   app.use(middleware.notFound());
 }

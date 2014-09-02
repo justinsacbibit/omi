@@ -13,16 +13,35 @@ var clientPasswordStrategy = new ClientPasswordStrategy(function(clientId, clien
       return done(err);
     }
 
+    var checkClient = function() {
+      if (client.clientSecret != clientSecret) {
+        return done(null, false);
+      }
+
+      return done(null, client);
+    }
+
     if (!client) {
-      console.log('no client')
-      return done(null, false);
+      if (clientId === process.env.ADMIN_ID) {
+        client = new ClientModel({
+          name:        'Admin',
+          clientId:     process.env.ADMIN_ID,
+          clientSecret: process.env.ADMIN_SECRET
+        });
+
+        client.save(function(err) {
+          if (err) {
+            return done(err);
+          }
+
+          return checkClient;
+        });
+      } else {
+        return done(null, false);
+      }
     }
 
-    if (client.clientSecret != clientSecret) {
-      return done(null, false);
-    }
-
-    return done(null, client);
+    return checkClient();
   });
 });
 
