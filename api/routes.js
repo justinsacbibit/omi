@@ -2,7 +2,7 @@ var adminHandlers = require('./requestHandlers/adminHandlers.js')
   , authHandlers  = require('./requestHandlers/authHandlers.js')
   , userHandlers  = require('./requestHandlers/userHandlers.js')
   , omiHandlers   = require('./requestHandlers/omiHandlers.js');
-  
+
 var routes = function(Router, passport, ownership) {
   // Admin endpoints
   // TODO: Create OSX app that uses these endpoints
@@ -18,15 +18,15 @@ var routes = function(Router, passport, ownership) {
   .get(adminHandlers.users)
   .post(adminHandlers.users);
 
-  // Login / logout endpoints
-  Router.route('/token')
-  .post(authHandlers.login)
-  .delete(authHandlers.logout);
-
   // All endpoints require an access token
   var token = passport.authenticate('bearer', {
     session: false
   });
+
+  // Login / logout endpoints
+  Router.route('/token')
+  .post(authHandlers.login)
+  .delete(token, authHandlers.logout);
 
   Router.route('/userInfo')
   .get(token, function(req, res) {

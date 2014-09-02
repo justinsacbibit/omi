@@ -24,4 +24,5 @@ var FBToken = new Schema({
 
 var FBTokenModel = mongoose.model('FBToken', FBToken);
 
+exports.FBToken      = FBToken;
 exports.FBTokenModel = FBTokenModel;

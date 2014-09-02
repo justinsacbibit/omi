@@ -67,8 +67,8 @@ var updateToken = function(client, user, facebookId, res) {
 };
 
 var login = function(req, res) {
-  var clientId = req.body['client_id']
-    , clientSecret = req.body['client_secret']
+  var clientId      = req.body['client_id']
+    , clientSecret  = req.body['client_secret']
     , fbAccessToken = req.body['fb_access_token']
 
   if (!clientId) {
@@ -95,15 +95,17 @@ var login = function(req, res) {
       return error.unauthorized(res, 'Wrong client secret')
     }
 
-    fb.login(fbAccessToken, function(err, facebookId, errMessageObj) {
+    fb.login(fbAccessToken, function(err, fbToken, errMessageObj) {
       if (err) {
         logError('login', 'fb.login');
         return error.server(res);
       }
 
-      if (!facebookId) {
+      if (!fbToken) {
         return error.gateway(res, errMessageObj['message']);
       }
+
+      var facebookId = fbToken.facebookId;
 
       UserModel.findOne({
         facebookId: facebookId
@@ -114,7 +116,7 @@ var login = function(req, res) {
         }
 
         if (!user) {
-          return fb.name(fbAccessToken, function(err, name, errMessageObj) {
+          return fb.name(fbToken.token, function(err, name, errMessageObj) {
             if (err) {
               logError('login', 'fb.name');
               return error.server(res);
@@ -126,7 +128,8 @@ var login = function(req, res) {
 
             var user = new UserModel({
               name:       name,
-              facebookId: facebookId
+              facebookId: facebookId,
+              fbToken:    fbToken
             });
 
             user.save(function(err) {
@@ -139,6 +142,14 @@ var login = function(req, res) {
             });
           });
         }
+
+        user.fbToken = [fbToken];
+        user.save(function(err) {
+          if (err) {
+            logError('login', 'user.save');
+            return error.server(res);
+          }
+        })
 
         return updateToken(client, user, facebookId, res);
       });
@@ -195,18 +206,10 @@ var logout = function(req, res) {
       return error.unauthorized(res, 'Invalid access token');
     }
 
-    var conditions = {
+    AccessTokenModel.remove({
       facebookId: accessToken.facebookId,
       clientId:   accessToken.clientId
-    };
-
-    FBTokenModel.remove(conditions, function(err) {
-      if (err) {
-        logError('logout', 'FBTokenModel.remove');
-      }
-    });
-
-    AccessTokenModel.remove(conditions, function(err) {
+    }, function(err) {
       if (err) {
         logError('logout', 'AccessTokenModel.remove');
         return error.server(res);

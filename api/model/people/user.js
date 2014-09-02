@@ -1,7 +1,8 @@
 var mongoose = require('mongoose')
   , Schema   = mongoose.Schema
   , extend   = require('mongoose-schema-extend')
-  , Ower     = require('./ower.js').Ower;
+  , Ower     = require('./ower.js').Ower
+  , FBToken  = require('../auth/fbToken.js').FBToken;
 
 var User = Ower.extend({
   facebookId: {
@@ -11,22 +12,12 @@ var User = Ower.extend({
   },
   email: {
     type: String
+  },
+  fbToken: {
+    type: [FBToken]
   }
 });
 
 var UserModel = mongoose.model('User', User);
 
 exports.UserModel = UserModel;
-
-// var user = new UserModel({
-//   name: 'Justin Sacbibit',
-//   facebookId: 8347013472
-// })
-//
-// user.save(function(err) {
-//   if (err) {
-//     return console.log('error creating user: ' + err.message);
-//   }
-//
-//   return console.log('successful');
-// })
