@@ -25,6 +25,14 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
+app.use(function checkSSL(req, res, next) {
+  var herokuProxyHeader = req.headers['x-forwarded-proto'];
+  if (herokuProxyHeader && herokuProxyHeader !== 'https') {
+    return res.status(401).end('SSL is required');
+  }
+  return next();
+});
+
 // Serve homepage
 app.use('/', express.static(path.join(__dirname, 'public')));
 
