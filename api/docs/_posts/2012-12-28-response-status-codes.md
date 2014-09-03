@@ -11,9 +11,9 @@ Successes differ from errors in that their body may not be a simple response obj
 * `GET`, `PUT`, `DELETE` returns `200 OK` on success,
 * `POST ` returns 201 on success,
 
-When [logging in](#login) for example:
+When [logging in](#/login) for example:
 
-```Status: 200 OK```
+```Status: 201 Created```
 ```{
   "token": {
     "access_token": "5ZLwlwz94d9w03323z3oItxCGonmdHoETtIrjtaOv70=",

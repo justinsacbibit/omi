@@ -40,14 +40,14 @@ var routes = function(Router, passport, ownership) {
   .get(token, userHandlers.user);
 
   Router.route('/users/:facebook_id/friends')
-  .get(token, userHandlers.friends);
+  .get([token, ownership], userHandlers.friends);
 
   Router.route('/users/:facebook_id/owers')
-  .get(token, userHandlers.owers)
+  .get([token, ownership], userHandlers.owers)
   .post([token, ownership], userHandlers.newOwer);
 
   Router.route('/users/:facebook_id/owers/:ower_id')
-  .get(token, userHandlers.ower)
+  .get([token, ownership], userHandlers.ower)
   .put([token, ownership], userHandlers.editOwer)
   .delete([token, ownership], userHandlers.removeOwer);
 

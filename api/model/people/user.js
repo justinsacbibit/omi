@@ -18,6 +18,13 @@ var User = Ower.extend({
   }
 });
 
+User.methods.toJSON = function() {
+  var obj = this.toObject();
+  delete obj.__v;
+  delete obj.fbToken;
+  return obj;
+}
+
 var UserModel = mongoose.model('User', User);
 
 exports.UserModel = UserModel;

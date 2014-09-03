@@ -29,8 +29,6 @@ var Ower = new Schema({
 Ower.methods.toJSON = function() {
   var obj = this.toObject();
   delete obj.__v;
-  delete obj._id;
-  delete obj._type;
   return obj;
 }
 

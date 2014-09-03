@@ -15,6 +15,8 @@
     
   
     
+  
+    
     <li><a href='#/response-status-codes'>Response status codes</a></li>
     
   
@@ -22,7 +24,33 @@
   
     
   
+    
   
+    
+  
+    
+  
+  
+  <li><h2>users</h2>
+    <ul>
+    
+              
+        <li class=''><a href='#'></a></li>
+      
+    
+              
+        <li class='GET'><a href='#/user'>Get a user</a></li>
+              
+        <li class='GET'><a href='#/owers'>Get a user's owers</a></li>
+              
+        <li class='POST'><a href='#/new-ower'>Create a new ower</a></li>
+              
+        <li class='GET'><a href='#/friends'>Get a user's Facebook friends</a></li>
+      
+    
+    </ul>
+  </li>
+
   <li><h2>authentication</h2>
     <ul>
     
@@ -66,15 +94,47 @@
 <h3 id="request">Request</h3>
 
 <ul>
-  <li>The headers must include a <strong>valid access token</strong>.
-<code>Authorization: Bearer TOKEN</code></li>
+  <li>The headers must include a <strong>valid access token</strong>.</li>
 </ul>
+
+<p><code>Authorization: Bearer TOKEN</code></p>
 
 <h3 id="response">Response</h3>
 
 <p><code>{
   "facebook_id": 3847140334283,
   "name": "Justin Sacbibit"
+}</code></p>
+
+<p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
+
+    </section>
+  </article>
+
+  <article class='GET'>
+    <a name='/user' href='#/user'><h2><code><b>GET</b> /users/:facebook_id</code> Get a user</h2></a>
+    <section class='body'>
+      <p>This method retrieves a user.</p>
+
+<h3 id="request">Request</h3>
+
+<ul>
+  <li>The headers must include a <strong>valid access token</strong>.</li>
+</ul>
+
+<p><code>Authorization: Bearer TOKEN</code></p>
+
+<h3 id="response">Response</h3>
+
+<p>Sends back a user object.</p>
+
+<p><code>Status: 200 OK</code>
+<code>{
+    "name": "Justin Sacbibit",
+    "facebookId": 41784013843941,
+    "omis": [],
+    "owers": [],
+    "created": "2014-09-02T02:38:25.658Z"
 }</code></p>
 
 <p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
@@ -94,9 +154,9 @@
   <li><code>POST </code> returns 201 on success,</li>
 </ul>
 
-<p>When <a href="#login">logging in</a> for example:</p>
+<p>When <a href="#/login">logging in</a> for example:</p>
 
-<p><code>Status: 200 OK</code>
+<p><code>Status: 201 Created</code>
 <code>{
   "token": {
     "access_token": "5ZLwlwz94d9w03323z3oItxCGonmdHoETtIrjtaOv70=",
@@ -124,6 +184,116 @@
     message: 'Invalid access token'
   }
 }</code></p>
+
+    </section>
+  </article>
+
+  <article class='GET'>
+    <a name='/owers' href='#/owers'><h2><code><b>GET</b> /users/:facebook_id/owers</code> Get a user's owers</h2></a>
+    <section class='body'>
+      <p>This method retrieves the owers for a user.</p>
+
+<h3 id="request">Request</h3>
+
+<ul>
+  <li>The headers must include a <strong>valid access token</strong>.</li>
+  <li>The token must correspond to the facebook ID.</li>
+  <li>The following query parameters can be included:
+    <ul>
+      <li>offset, used for pagination.</li>
+      <li>limit, used for pagination.</li>
+      <li>name, used for filtering the results. Cannot be used simultaneously with facebook_id.</li>
+      <li>facebook_id, used for finding a single user. Cannot be used simultaneously with name or type.</li>
+      <li>type, used for only retrieving either “tethered” or “user” owers. Cannot be used simultaneously with facebook_id</li>
+    </ul>
+  </li>
+</ul>
+
+<p><code>Authorization: Bearer TOKEN</code>
+<code>/owers?offset=0&amp;limit=10</code></p>
+
+<h3 id="response">Response</h3>
+
+<p>Sends back an array of ower objects.</p>
+
+<p><code>Status: 200 OK</code>
+<code>[
+  {
+    "_id": jasdu0a93ufnjsvcxv093904,
+    "name": "Justin Sacbibit",
+    "facebookId": 41784013843941,
+    "omis": [],
+    "owers": [],
+    "created": "2014-09-02T02:38:25.658Z"
+    "_type": "User"
+  },
+  {
+    "_id": fjasi203209r09zdjncwei0we,
+    "name": "John Doe",
+    "owner": 15263714193874134,
+    "omis": [],
+    "owers": [],
+    "created": "2014-09-02T02:38:25.658Z"
+    "_type": "TetheredUser"
+  }
+]</code></p>
+
+<p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
+
+    </section>
+  </article>
+
+  <article class='POST'>
+    <a name='/new-ower' href='#/new-ower'><h2><code><b>POST</b> /users/:facebook_id/owers</code> Create a new ower</h2></a>
+    <section class='body'>
+      <p>This method creates an ower for a user.</p>
+
+<h3 id="request">Request</h3>
+
+<ul>
+  <li>The headers must include a <strong>valid access token</strong>.</li>
+  <li>The token must correspond to the facebook ID.</li>
+  <li>The following query parameters can be included:
+    <ul>
+      <li>offset, used for pagination.</li>
+      <li>limit, used for pagination.</li>
+      <li>name, used for filtering the results. Cannot be used simultaneously with facebook_id.</li>
+      <li>facebook_id, used for finding a single user. Cannot be used simultaneously with name or type.</li>
+      <li>type, used for only retrieving either “tethered” or “user” owers. Cannot be used simultaneously with facebook_id</li>
+    </ul>
+  </li>
+</ul>
+
+<p><code>Authorization: Bearer TOKEN</code>
+<code>/owers?offset=0&amp;limit=10</code></p>
+
+<h3 id="response">Response</h3>
+
+<p>Sends back an array of ower objects.</p>
+
+<p><code>Status: 200 OK</code>
+<code>[
+  {
+    "_id": jasdu0a93ufnjsvcxv093904,
+    "name": "Justin Sacbibit",
+    "facebookId": 41784013843941,
+    "omis": [],
+    "owers": [],
+    "created": "2014-09-02T02:38:25.658Z"
+    "_type": "User"
+  },
+  {
+    "_id": fjasi203209r09zdjncwei0we,
+    "name": "John Doe",
+    "owner": 15263714193874134,
+    "omis": [],
+    "owers": [],
+    "created": "2014-09-02T02:38:25.658Z"
+    "_type": "TetheredUser"
+  }
+]</code></p>
+
+<p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
 
     </section>
   </article>
@@ -201,6 +371,52 @@
   <li>The fb_access_token should be discarded, while the access_token should be saved.</li>
   <li>The access_token is required for most API calls.</li>
 </ul>
+
+<p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
+
+    </section>
+  </article>
+
+  <article class='GET'>
+    <a name='/friends' href='#/friends'><h2><code><b>GET</b> /users/:facebook_id/friends</code> Get a user's Facebook friends</h2></a>
+    <section class='body'>
+      <p>This method retrieves Facebook friends who have logged in through the app, and have granted the “user_friends” permission.</p>
+
+<h3 id="request">Request</h3>
+
+<ul>
+  <li>The headers must include a <strong>valid access token</strong>.</li>
+  <li>The token must correspond to the facebook ID.</li>
+  <li>The following query parameters can be included:
+    <ul>
+      <li>offset, used for pagination.</li>
+      <li>limit, used for pagination. If a value over 100 is used, only 100 items will be returned.</li>
+      <li>name, used for filtering the results.</li>
+    </ul>
+  </li>
+</ul>
+
+<p><code>Authorization: Bearer TOKEN</code>
+<code>/friends?offset=0&amp;limit=10&amp;name=Doe</code></p>
+
+<h3 id="response">Response</h3>
+
+<p>Sends back an array of objects containing a name and Facebook ID.</p>
+
+<p><code>Status: 200 OK</code>
+<code>{
+  "friends": [
+    {
+      "name": "John Doe",
+      "id": 1278731238
+    },
+    {
+      "name": "Jane Doe",
+      "id": 1283723627
+    }
+  ],
+  "total_count": 408
+}</code></p>
 
 <p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>
 

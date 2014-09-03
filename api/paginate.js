@@ -1,16 +1,8 @@
 var error = require('./requestHandlers/error.js');
 
 module.exports = function(req, res, conditions) {
-  var offset = req.query.offset
+  var offset = req.query.skip
     , limit  = req.query.limit;
-
-  if (!offset) {
-    error.missingParam(res, 'offset');
-    return false;
-  } else if (!limit) {
-    error.missingParam(res, 'limit');
-    return false;
-  }
 
   if (offset < 0) {
     error.badRequest(res, 'Offset parameter must be greater than or equal to zero');
@@ -20,10 +12,21 @@ module.exports = function(req, res, conditions) {
   if (limit <= 0) {
     error.badRequest(res, 'Limit parameter must be greater than zero');
     return false;
+  } else if (limit > 100) {
+    limit = 100;
   }
 
-  conditions['skip']  = offset;
-  conditions['limit'] = limit;
+  if (offset) {
+    if (!limit) {
+      error.missingParam(res, 'limit');
+      return false;
+    }
+
+    conditions['skip'] = offset;
+  } else if (limit) {
+    error.missingParam(res, 'skip');
+    return false;
+  }
 
   return true;
 };

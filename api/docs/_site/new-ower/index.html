@@ -1,0 +1,48 @@
+<p>This method creates an ower for a user.</p>
+
+<h3 id="request">Request</h3>
+
+<ul>
+  <li>The headers must include a <strong>valid access token</strong>.</li>
+  <li>The token must correspond to the facebook ID.</li>
+  <li>The following query parameters can be included:
+    <ul>
+      <li>offset, used for pagination.</li>
+      <li>limit, used for pagination.</li>
+      <li>name, used for filtering the results. Cannot be used simultaneously with facebook_id.</li>
+      <li>facebook_id, used for finding a single user. Cannot be used simultaneously with name or type.</li>
+      <li>type, used for only retrieving either “tethered” or “user” owers. Cannot be used simultaneously with facebook_id</li>
+    </ul>
+  </li>
+</ul>
+
+<p><code>Authorization: Bearer TOKEN</code>
+<code>/owers?offset=0&amp;limit=10</code></p>
+
+<h3 id="response">Response</h3>
+
+<p>Sends back an array of ower objects.</p>
+
+<p><code>Status: 200 OK</code>
+<code>[
+  {
+    "_id": jasdu0a93ufnjsvcxv093904,
+    "name": "Justin Sacbibit",
+    "facebookId": 41784013843941,
+    "omis": [],
+    "owers": [],
+    "created": "2014-09-02T02:38:25.658Z"
+    "_type": "User"
+  },
+  {
+    "_id": fjasi203209r09zdjncwei0we,
+    "name": "John Doe",
+    "owner": 15263714193874134,
+    "omis": [],
+    "owers": [],
+    "created": "2014-09-02T02:38:25.658Z"
+    "_type": "TetheredUser"
+  }
+]</code></p>
+
+<p>For errors responses, see the <a href="#response-status-codes">response status codes documentation</a>.</p>

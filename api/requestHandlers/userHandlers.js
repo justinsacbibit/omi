@@ -1,8 +1,10 @@
-var UserModel    = require('../model/people/user.js').UserModel
-  , FBTokenModel = require('../model/auth/fbToken.js').FBTokenModel
-  , error        = require('./error.js')
-  , fb           = require('../fb.js')
-  , paginate     = require('../paginate.js');
+var UserModel         = require('../model/people/user.js').UserModel
+  , OwerModel         = require('../model/people/ower.js').OwerModel
+  , TetheredOwerModel = require('../model/people/tetheredOwer.js').TetheredOwerModel
+  , FBTokenModel      = require('../model/auth/fbToken.js').FBTokenModel
+  , error             = require('./error.js')
+  , fb                = require('../fb.js')
+  , paginate          = require('../paginate.js');
 
 var ascending = function(key) {
   return function(a, b) {
@@ -20,8 +22,10 @@ var logError = function(functionName, failure, err) {
 };
 
 var getUser = function(req, res) {
+  var facebookId = req.param('facebook_id');
+
   UserModel.findOne({
-    facebookId: req.param('facebook_id')
+    facebookId: facebookId
   }, function(err, user) {
     if (err) {
       logError('getUser', 'UserModel.findOne', err);
@@ -32,8 +36,30 @@ var getUser = function(req, res) {
   });
 };
 
+var checkToken = function(fbToken) {
+  if (fb.expired(fbToken)) {
+    error.unauthorized(res, 'Access token has expired, please log in again', 2);
+    return false;
+  }
+
+  if (fb.needPermissions(fbToken, 'user_friends')) {
+    error.unauthorized(res, 'Permission required to access user friends', 1);
+    return false;
+  }
+
+  return true;
+};
+
 var getFriends = function(req, res) {
-  var facebookId = req.param('facebook_id');
+  var fbToken    = req.user.fbToken[0]
+    , facebookId = req.param('facebook_id')
+    , name       = req.query.name
+    , offset     = req.query.skip
+    , limit      = req.query.limit;
+
+  if (!checkToken(fbToken)) {
+    return;
+  }
 
   var conditions = {
     facebookId: facebookId
@@ -41,16 +67,6 @@ var getFriends = function(req, res) {
 
   if (!paginate(req, res, conditions)) {
     return;
-  }
-
-  var fbToken = req.user.fbToken[0];
-
-  if (fb.expired(fbToken)) {
-    return error.unauthorized(res, 'Access token has expired, please log in again', 2);
-  }
-
-  if (fb.needPermissions(fbToken, 'user_friends')) {
-    return error.unauthorized(res, 'Permission required to access user friends', 1);
   }
 
   fb.friends(fbToken, function(err, friends, totalCount, errMessageObj) {
@@ -63,8 +79,6 @@ var getFriends = function(req, res) {
       return error.server(res);
     }
 
-    var name = req.query.name;
-
     if (name) {
       friends = friends.filter(function(element) {
         var fullFriendName = element['name'];
@@ -72,8 +86,11 @@ var getFriends = function(req, res) {
       });
     }
 
-    friends = friends.sort(ascending('name'))
-                     .slice(req.query.offset, req.query.offset + req.query.limit);
+    friends = friends.sort(ascending('name'));
+
+    if (offset && limit) {
+      friends = friends.slice(offset, offset + limit);;
+    }
 
     var JSON = {
       friends: friends
@@ -88,12 +105,52 @@ var getFriends = function(req, res) {
 };
 
 var getOwers = function(req, res) {
-  // paginate
-  return error.notImplemented(res);
+  var fbToken    = req.user.fbToken[0]
+    , facebookId = req.param('facebook_id')
+    , offset     = req.query.skip
+    , limit      = req.query.limit
+    , name       = req.query.name
+    , fbFilterId = req.query.facebook_id
+    , type       = req.query.type;
+
+  if (!checkToken(fbToken)) {
+    return;
+  }
+
+  var conditions = {
+    facebookId: facebookId
+  };
+
+  if (!paginate(req, res, conditions)) {
+    return;
+  }
+
+  if (name && fbFilterId) {
+    return error.badRequest(res, 'Cannot filter by name and facebook_id simultaneously');
+  }
+
+  if (fbFilterId && type) {
+    return error.badRequest(res, 'Cannot filter by facebook_id and type simultaneously');
+  }
+
+  if (name) {
+    conditions['name'] = new RegExp(name, 'i');
+  } else if (fbFilterId) {
+    conditions['facebookId'] = fbFilterId;
+  }
+
+  OwerModel.find(conditions, function(err, owers) {
+    if (err) {
+      logError('getOwers', 'OwerModel.find', err);
+      return error.server(res);
+    }
+
+    return res.json(owers);
+  });
 };
 
 var newOwer = function(req, res) {
-  return error.notImplemented(res);
+
 };
 
 var getOwer = function(req, res) {
