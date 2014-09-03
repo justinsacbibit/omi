@@ -32,7 +32,7 @@ Ower.methods.toJSON = function() {
   return obj;
 }
 
-var OwerModel = mongoose.model('Ower', Ower);
+var OwerModel = mongoose.model('Ower', Ower, 'owers');
 
 exports.Ower = Ower;
 exports.OwerModel = OwerModel;

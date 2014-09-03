@@ -4,7 +4,8 @@ var UserModel         = require('../model/people/user.js').UserModel
   , FBTokenModel      = require('../model/auth/fbToken.js').FBTokenModel
   , error             = require('./error.js')
   , fb                = require('../fb.js')
-  , paginate          = require('../paginate.js');
+  , paginate          = require('../paginate.js')
+  , debug             = require('../debug.js');
 
 var ascending = function(key) {
   return function(a, b) {
@@ -36,7 +37,7 @@ var getUser = function(req, res) {
   });
 };
 
-var checkToken = function(fbToken) {
+var checkToken = function(res, fbToken) {
   if (fb.expired(fbToken)) {
     error.unauthorized(res, 'Access token has expired, please log in again', 2);
     return false;
@@ -57,7 +58,7 @@ var getFriends = function(req, res) {
     , offset     = req.query.skip
     , limit      = req.query.limit;
 
-  if (!checkToken(fbToken)) {
+  if (!checkToken(res, fbToken)) {
     return;
   }
 
@@ -105,7 +106,9 @@ var getFriends = function(req, res) {
 };
 
 var getOwers = function(req, res) {
-  var fbToken    = req.user.fbToken[0]
+  var user       = req.user
+    , fbToken    = user.fbToken[0]
+    , owerIds    = user.owers
     , facebookId = req.param('facebook_id')
     , offset     = req.query.skip
     , limit      = req.query.limit
@@ -113,12 +116,14 @@ var getOwers = function(req, res) {
     , fbFilterId = req.query.facebook_id
     , type       = req.query.type;
 
-  if (!checkToken(fbToken)) {
+  if (!checkToken(res, fbToken)) {
     return;
   }
 
   var conditions = {
-    facebookId: facebookId
+    _id: {
+      $in: owerIds
+    }
   };
 
   if (!paginate(req, res, conditions)) {
@@ -130,7 +135,7 @@ var getOwers = function(req, res) {
   }
 
   if (fbFilterId && type) {
-    return error.badRequest(res, 'Cannot filter by facebook_id and type simultaneously');
+    return error.badRequest(res, 'Invalid parameters: Cannot filter by facebook_id and type simultaneously');
   }
 
   if (name) {
@@ -138,6 +143,15 @@ var getOwers = function(req, res) {
   } else if (fbFilterId) {
     conditions['facebookId'] = fbFilterId;
   }
+
+  if (type) {
+    if (type !== 'User' && type !== 'TetheredOwer') {
+      return error.badRequest(res, 'Invalid parameter: Type is invalid');
+    }
+    conditions['_type'] = type;
+  }
+
+  debug.log(conditions);
 
   OwerModel.find(conditions, function(err, owers) {
     if (err) {
@@ -150,11 +164,119 @@ var getOwers = function(req, res) {
 };
 
 var newOwer = function(req, res) {
+  var fbToken    = req.user.fbToken[0]
+    , facebookId = req.param('facebook_id')
+    , name       = req.body.name
+    , owerFbId   = req.body.facebook_id;
 
+  if (!checkToken(res, fbToken)) {
+    return;
+  }
+
+  if (name && owerFbId) {
+    return error.badRequest(res, 'Invalid parameters: must not send name and facebook_id simultaneously in request');
+  }
+
+  if (facebookId == owerFbId) {
+    return error.badRequest(res, 'Invalid parameter: facebook_id cannot be own Facebook ID');
+  }
+
+  var conditions = {
+    user:  facebookId,
+    _type: 'TetheredOwer'
+  };
+
+  if (!name) {
+    if (!owerFbId) {
+      return error.missingParam(res, 'Name');
+    }
+
+    conditions['facebookId'] = owerFbId;
+  } else {
+    conditions['name'] = name;
+  }
+
+  return TetheredOwerModel.findOne(conditions, function(err, tetheredOwer) {
+    if (err) {
+      logError('newOwer', 'TetheredOwerModel.findOne', err);
+      return error.server(res);
+    }
+
+    if (tetheredOwer) {
+      return error.exists(res, 'Ower');
+    }
+
+    var sendOwer = function(owerName) {
+      var properties = {
+        name: owerName,
+        user: facebookId
+      };
+
+      if (owerFbId) {
+        properties['facebookId'] = owerFbId;
+      }
+
+      tetheredOwer = new TetheredOwerModel(properties);
+
+      return tetheredOwer.save(function(err) {
+        if (err) {
+          logError('newOwer', 'tetheredOwer.save', err);
+          return error.server(res);
+        }
+
+        req.user.owers.push(tetheredOwer._id);
+        req.user.save(function(err) {
+          if (err) {
+            logError('newOwer', 'user.save', err);
+          }
+        });
+
+        return res.status(201).json(tetheredOwer);
+      });
+    };
+
+    if (owerFbId) {
+      return UserModel.findOne({
+        facebookId: owerFbId
+      }, function(err, user) {
+        if (err) {
+          logError('newOwer', 'UserModel.findOne', err);
+          return error.server(res);
+        }
+
+        if (!user) {
+          return error.notFound(res, 'Facebook user');
+        }
+
+        return sendOwer(user.name);
+      });
+    }
+
+    return sendOwer(name);
+  });
 };
 
 var getOwer = function(req, res) {
-  return error.notImplemented(res);
+  var fbToken    = req.user.fbToken[0]
+    , facebookId = req.param('facebook_id')
+    , owerId     = req.param('ower_id');
+
+  if (!checkToken(res, fbToken)) {
+    return;
+  }
+
+  OwerModel.findById(owerId, function(err, ower) {
+    if (err) {
+      logError('getOwer', 'OwerModel.findById', err);
+      return error.server(res);
+    }
+
+    if (!ower) {
+      return error.notFound(res, 'Ower');
+    }
+
+    res.json(ower);
+  });
 };
 
 var editOwer = function(req, res) {

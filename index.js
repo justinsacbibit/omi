@@ -4,6 +4,7 @@
  * LOG: Boolean for verbose logging
  * APP_TOKEN: Facebook app token
  * APP_ID: Facebook app ID
+ * APP_SECRET: Facebook app secret
  * ADMIN_ID: Client ID for admin program
  * ADMIN_SECRET: Client secret for admin program
  */

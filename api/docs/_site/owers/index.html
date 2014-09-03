@@ -7,11 +7,11 @@
   <li>The token must correspond to the facebook ID.</li>
   <li>The following query parameters can be included:
     <ul>
-      <li>offset, used for pagination.</li>
-      <li>limit, used for pagination.</li>
-      <li>name, used for filtering the results. Cannot be used simultaneously with facebook_id.</li>
-      <li>facebook_id, used for finding a single user. Cannot be used simultaneously with name or type.</li>
-      <li>type, used for only retrieving either “tethered” or “user” owers. Cannot be used simultaneously with facebook_id</li>
+      <li>offset: paginates. Requires: limit.</li>
+      <li>limit: paginates. Requires: offset.</li>
+      <li>name: filters the results. Requires: !facebook_id</li>
+      <li>facebook_id: used for finding a single user. Requires: !name, !type</li>
+      <li>type: used for only retrieving either “tethered” or “user” owers. Requires: !facebook_id</li>
     </ul>
   </li>
 </ul>

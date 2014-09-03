@@ -25,6 +25,6 @@ User.methods.toJSON = function() {
   return obj;
 }
 
-var UserModel = mongoose.model('User', User);
+var UserModel = mongoose.model('User', User, 'owers');
 
 exports.UserModel = UserModel;

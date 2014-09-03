@@ -21,6 +21,10 @@ var Transaction = new Schema({
     created: {
       type:    Date,
       default: Date.now
+    },
+    confirmed: {
+      type:    Boolean,
+      default: false
     }
 }, {
   discriminatorKey: '_type'

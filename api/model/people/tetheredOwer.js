@@ -16,6 +16,6 @@ TetheredOwer.methods.toJSON = function() {
   return obj;
 }
 
-var TetheredOwerModel = mongoose.model('TetheredOwer', TetheredOwer);
+var TetheredOwerModel = mongoose.model('TetheredOwer', TetheredOwer, 'owers');
 
 exports.TetheredOwerModel = TetheredOwerModel;

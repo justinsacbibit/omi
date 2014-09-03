@@ -5,7 +5,11 @@ var notFound = function(req, res, next) {
 };
 
 var ownership = function(req, res, next) {
-  if (req.user.facebookId !== req.param('facebook_id')) {
+  if (req.user.facebookId != req.param('facebook_id')) {
+    if (process.env.DEBUG) {
+      console.log(req.user);
+      console.log(req.param('facebook_id'));
+    }
     return error.forbidden(res);
   }
 

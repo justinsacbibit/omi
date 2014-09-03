@@ -7,7 +7,8 @@
 var rest         = require('restler')
   , crypto       = require('crypto')
   , FBTokenModel = require('./model/auth/fbToken.js').FBTokenModel
-  , querystring  = require('querystring');
+  , querystring  = require('querystring')
+  , debug        = require('./debug.js');
 
 var logError = function(functionName, failure, err) {
   console.log('fb.js: ' + functionName + ': ' + failure + ': err');
@@ -28,15 +29,26 @@ var queryBuilder = function(params) {
 
 var URLBuilder = function(endpoint, params) {
   return 'https://graph.facebook.com' + endpoint + queryBuilder(params);
-}
+};
+
+var appSecretProof = function(fbAccessToken) {
+  var hmac = crypto.createHmac('sha256', process.env.APP_SECRET);
+  hmac.update(fbAccessToken);
+  var appSecretProof = hmac.digest('hex');
+  return appSecretProof;
+};
 
 exports.login = function(fbAccessToken, done) {
   var URL = URLBuilder('/debug_token', {
     'input_token':  fbAccessToken,
-    'access_token': process.env.APP_ID + '|' + process.env.APP_TOKEN
+    'access_token': process.env.APP_TOKEN
   });
 
   rest.get(URL).on('complete', function(data) {
+    if (process.env.DEBUG) {
+      console.log('Debug call complete');
+      console.log(data)
+    }
     if (typeof data === Error) {
       return done(data);
     }
@@ -54,12 +66,18 @@ exports.login = function(fbAccessToken, done) {
       , scopes     = data['scopes'];
 
     if (app_id !== process.env.APP_ID) {
+      debug.log('Wrong app ID');
+      debug.log(data);
+
       return done(null, false, {
         message: 'App ID does not match'
       });
     }
 
     if (typeof facebookId !== 'number') {
+      debug.log('Facebook ID has wrong type');
+      debug.log(data);
+
       return done(null, false, {
         message: 'User ID not returned in response'
       });
@@ -67,12 +85,16 @@ exports.login = function(fbAccessToken, done) {
 
     URL = URLBuilder('/oauth/access_token', {
       'client_id':         process.env.APP_ID,
-      'client_secret':     process.env.APP_TOKEN,
+      'client_secret':     process.env.APP_SECRET,
       'grant_type':        'fb_exchange_token',
       'fb_exchange_token': fbAccessToken
     });
 
+    debug.log(process.env.APP_SECRET);
+
     rest.get(URL).on('complete', function(data) {
+      debug.log(data);
+
       if (typeof data === Error) {
         return done(data);
       }
@@ -102,10 +124,13 @@ exports.login = function(fbAccessToken, done) {
 
 exports.name = function(fbAccessToken, done) {
   URL = URLBuilder('/me', {
-    'access_token': fbAccessToken
+    'access_token':    fbAccessToken,
+    'appsecret_proof': appSecretProof(fbAccessToken)
   });
 
   rest.get(URL).on('complete', function(data) {
+    debug.log(data);
+
     if (typeof data === Error) {
       return done(data);
     }
@@ -134,8 +159,10 @@ exports.name = function(fbAccessToken, done) {
 exports.expired = function(fbToken) {
   if (process.env.DEBUG) {
     console.log('FB token ' + fbToken.token + ' expires in ' + (fbToken.expires - Date.now()) + ' seconds.');
+    console.log('(fbToken.expires: ' + Math.round(fbToken.expires) + ', Date.now(): ' + Date.now());
+    console.log('Expired: ' + fbToken.expires <= Date.now());
   }
-  return (fbToken.expires - Date.now()) < 0;
+  return fbToken.expires <= Date.now();
 }
 
 exports.needPermissions = function(fbToken, permission) {
@@ -143,13 +170,9 @@ exports.needPermissions = function(fbToken, permission) {
 }
 
 exports.friends = function(fbToken, done) {
-  var hmac = crypto.createHmac('sha256', process.env.APP_TOKEN);
-  hmac.update(fbToken.token);
-  var appSecretProof = hmac.digest('hex');
-
   URL = URLBuilder('/me/friends', {
     'access_token':    fbToken.token,
-    'appsecret_proof': appSecretProof
+    'appsecret_proof': appSecretProof(fbToken.token)
   });
 
   rest.get(URL).on('complete', function(data) {
