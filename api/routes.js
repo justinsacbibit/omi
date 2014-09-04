@@ -21,6 +21,9 @@ var routes = function(Router, passport, ownership, token) {
   Router.route('/admin/owers')
   .get(adminHandlers.owers);
 
+  Router.route('/admin/requests/owers')
+  .get(adminHandlers.owerRequests);
+
   Router.route('/token')
   .post(authHandlers.login)
   .delete(token, authHandlers.logout);
@@ -30,6 +33,9 @@ var routes = function(Router, passport, ownership, token) {
 
   Router.route('/users/:facebook_id')
   .get(token, userHandlers.user);
+
+  Router.route('/users/:facebook_id/requests/owers')
+  .get([token, ownership], userHandlers.owerRequests);
 
   Router.route('/users/:facebook_id/friends')
   .get([token, ownership], userHandlers.friends);

@@ -2,6 +2,7 @@ var UserModel         = require('../model/people/user.js').UserModel
   , OwerModel         = require('../model/people/ower.js').OwerModel
   , TetheredOwerModel = require('../model/people/tetheredOwer.js').TetheredOwerModel
   , FBTokenModel      = require('../model/auth/fbToken.js').FBTokenModel
+  , OwerRequestModel  = require('../model/requests/owerRequest.js').OwerRequestModel
   , error             = require('./error.js')
   , fb                = require('../fb.js')
   , paginate          = require('../paginate.js')
@@ -30,8 +31,42 @@ var userInfo = function(req, res) {
   });
 };
 
+var getOwerRequests = function(req, res) {
+  var facebookId = parseInt(req.param('facebook_id'))
+    , type       = req.query.type;
+
+  if (isNaN(facebookId)) {
+    return error.badRequest(res, 'Invalid parameter: facebook_id must be a number');
+  }
+
+  var conditions = {};
+
+  if (!paginate(req, res, conditions)) {
+    return;
+  }
+
+  if (type) {
+    if (type === 'received') {
+      conditions['to'] = facebookId;
+    } else if (type === 'sent') {
+      conditions['from'] = facebookId;
+    } else {
+      return error.badRequest(res, 'Invalid parameter: type must be either "received" or "sent"');
+    }
+  }
+
+  OwerRequestModel.find(conditions, function(err, owerRequests) {
+    if (err) {
+      logError('getOwerRequests', 'OwerRequestModel.find', err);
+      return error.server(res);
+    }
+
+    res.json(owerRequests);
+  });
+};
+
 var getUser = function(req, res) {
-  var facebookId = req.param('facebook_id');
+  var facebookId = parseInt(req.param('facebook_id'));
 
   if (isNaN(facebookId)) {
     return error.badRequest(res, 'Invalid parameter: facebook_id must be a number');
@@ -69,9 +104,9 @@ var checkToken = function(res, fbToken) {
 
 var getFriends = function(req, res) {
   var fbToken    = req.user.fbToken[0]
-    , facebookId = req.param('facebook_id')
+    , facebookId = parseInt(req.param('facebook_id'))
     , name       = req.query.name
-    , offset     = req.query.skip
+    , offset     = req.query.offset
     , limit      = req.query.limit;
 
   if (!checkToken(res, fbToken)) {
@@ -124,8 +159,7 @@ var getFriends = function(req, res) {
 var getOwers = function(req, res) {
   var user       = req.user
     , fbToken    = user.fbToken[0]
-    , owerIds    = user.owers
-    , facebookId = req.param('facebook_id')
+    , facebookId = parseInt(req.param('facebook_id'))
     , offset     = req.query.skip
     , limit      = req.query.limit
     , name       = req.query.name
@@ -136,11 +170,7 @@ var getOwers = function(req, res) {
     return;
   }
 
-  var conditions = {
-    _id: {
-      $in: owerIds
-    }
-  };
+  var conditions = {};
 
   if (!paginate(req, res, conditions)) {
     return;
@@ -159,6 +189,8 @@ var getOwers = function(req, res) {
   } else if (fbFilterId) {
     conditions['facebookId'] = fbFilterId;
   }
+
+  conditions['tetheredTo'] = parseInt(facebookId);
 
   if (type) {
     if (type !== 'User' && type !== 'TetheredOwer') {
@@ -181,7 +213,7 @@ var getOwers = function(req, res) {
 
 var newOwer = function(req, res) {
   var fbToken    = req.user.fbToken[0]
-    , facebookId = req.param('facebook_id')
+    , facebookId = parseInt(req.param('facebook_id'))
     , name       = req.body.name
     , owerFbId   = req.body.facebook_id;
 
@@ -204,7 +236,7 @@ var newOwer = function(req, res) {
 
   if (!name) {
     if (!owerFbId) {
-      return error.missingParam(res, 'Name');
+      return error.missingParam(res, 'name or facebook_id');
     }
 
     conditions['facebookId'] = owerFbId;
@@ -237,6 +269,7 @@ var newOwer = function(req, res) {
         properties['counterpart'] = existingOwer._id;
       }
 
+      debug.log(properties);
       tetheredOwer = new TetheredOwerModel(properties);
 
       return tetheredOwer.save(function(err) {
@@ -309,10 +342,19 @@ var newOwer = function(req, res) {
             });
           }
 
-          // TODO: send a request to this user
+          var owerRequest = new OwerRequestModel({
+            from: facebookId,
+            to:   user.facebookId
+          });
 
-          // if the user hasn't, create a tethered ower and send it
-          return sendOwer(user.name);
+          owerRequest.save(function(err) {
+            if (err) {
+              logError('newOwer', 'owerRequest.save', err);
+              return error.server(res);
+            }
+
+            return sendOwer(user.name);
+          });
         });
       });
     }
@@ -324,8 +366,8 @@ var newOwer = function(req, res) {
 
 var getOwer = function(req, res) {
   var fbToken    = req.user.fbToken[0]
-    , facebookId = req.param('facebook_id')
-    , owerId     = req.param('ower_id');
+    , facebookId = parseInt(req.param('facebook_id'))
+    , owerId     = parseInt(req.param('ower_id'));
 
   if (!checkToken(res, fbToken)) {
     return;
@@ -346,10 +388,11 @@ var getOwer = function(req, res) {
 };
 
 var putOwer = function(req, res) {
-  var fbToken = req.user.fbToken[0]
-    , owerId  = req.param('ower_id')
-    , newName = req.body.name
-    , newFbId = req.body.facebook_id;
+  var fbToken    = req.user.fbToken[0]
+    , facebookId = parseInt(req.param('facebook_id'))
+    , owerId     = parseInt(req.param('ower_id'))
+    , newName    = req.body.name
+    , newFbId    = req.body.facebook_id;
 
   if (!checkToken(res, fbToken)) {
     return;
@@ -362,7 +405,7 @@ var putOwer = function(req, res) {
   }
 
   TetheredOwerModel.findOne({
-    _id: owerId,
+    _id:   owerId,
     _type: 'TetheredOwer'
   }, function(err, tetheredOwer) {
     if (err) {
@@ -379,17 +422,88 @@ var putOwer = function(req, res) {
         return error.conflict(res, 'Cannot update name for a tethered ower linked to a Facebook account');
       }
 
+      if (tetheredOwer.facebookId === newFbId) {
+        return error.conflict(res, 'Facebook ID is already set to the facebook_id');
+      }
+
       return error.conflict(res, 'Cannot update Facebook ID for a tethered ower already linked to a Facebook account');
     }
 
-    if (newName) {
-      tetheredOwer.name = newName;
-    } else {
-      tetheredOwer.facebookId = facebookId;
+    if (newFbId) {
+      return UserModel.findOne({
+        facebookId: newFbId
+      }, function(err, user) {
+        if (err) {
+          logError('putOwer', 'UserModel.findOne', err);
+          return error.server(res);
+        }
 
-      // TODO: Make a request or add counterpart
+        if (!user) {
+          return error.notFound(res, 'facebook_id');
+        }
+
+        tetheredOwer.facebookId = facebookId;
+
+        return TetheredOwerModel.findOne({
+          tetheredTo: facebookId,
+          facebookId: newFbId
+        }, function(err, counterpartOwer) {
+          if (err) {
+            logError('putOwer', 'TetheredOwerModel.findOne', err, 'Looking for counterpart');
+            return error.server(res);
+          }
+
+          if (!counterpartOwer) {
+            var owerRequest = new OwerRequestModel({
+              from: facebookId,
+              to:   newFbId
+            });
+
+            return owerRequest.save(function(err) {
+              if (err) {
+                logError('putOwer', 'owerRequest.save', err);
+                return error.server(res);
+              }
+
+              tetheredOwer.save(function(err) {
+                if (err) {
+                  logError('putOwer', 'tetheredOwer.save', err);
+                  return error.server(res);
+                }
+
+                return res.json(tetheredOwer);
+              });
+            });
+          }
+
+          if (counterpartOwer && counterpartOwer.counterpart) {
+            logError('putOwer', 'counterpartOwer.counterpart', new Error('Fatal error'), 'Unstable state');
+            return error.server(res);
+          }
+
+          tetheredOwer.counterpart = counterpartOwer._id;
+          counterpartOwer.counterpart = tetheredOwer._id;
+
+          tetheredOwer.save(function(err) {
+            if (err) {
+              logError('putOwer', 'tetheredOwer.save', err);
+              return error.server(res);
+            }
+
+            counterpartOwer.save(function(err) {
+              if (err) {
+                logError('putOwer', 'counterpartOwer.save', err);
+                return error.server(res);
+              }
+
+              return res.json(tetheredOwer);
+            });
+          });
+        });
+      });
     }
 
+    tetheredOwer.name = newName;
     tetheredOwer.save(function(err) {
       if (err) {
         logError('putOwer', 'tetheredOwer.save', err);
@@ -403,7 +517,7 @@ var putOwer = function(req, res) {
 
 var removeOwer = function(req, res) {
   var fbToken    = req.user.fbToken[0]
-    , owerId     = req.param('ower_id');
+    , owerId     = parseInt(req.param('ower_id'));
 
   if (!checkToken(res, fbToken)) {
     return;
@@ -456,6 +570,7 @@ var removeOwer = function(req, res) {
 
 exports.userInfo = userInfo;
 exports.user = getUser;
+exports.owerRequests = getOwerRequests;
 exports.friends = getFriends;
 exports.owers = getOwers;
 exports.newOwer = newOwer;

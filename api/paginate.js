@@ -1,7 +1,7 @@
 var error = require('./requestHandlers/error.js');
 
 module.exports = function(req, res, conditions) {
-  var offset = req.query.skip
+  var offset = req.query.offset
     , limit  = req.query.limit;
 
   if (offset < 0) {

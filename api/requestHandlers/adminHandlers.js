@@ -1,9 +1,10 @@
-var passport    = require('passport')
-  , ClientModel = require('../model/auth/client.js').ClientModel
-  , UserModel   = require('../model/people/user.js').UserModel
-  , OwerModel   = require('../model/people/ower.js').OwerModel
-  , error       = require('./error.js')
-  , debug       = require('../debug.js');
+var passport         = require('passport')
+  , ClientModel      = require('../model/auth/client.js').ClientModel
+  , UserModel        = require('../model/people/user.js').UserModel
+  , OwerModel        = require('../model/people/ower.js').OwerModel
+  , OwerRequestModel = require('../model/requests/owerRequest.js').OwerRequestModel
+  , error            = require('./error.js')
+  , debug            = require('../debug.js');
 
 var logError = function(functionName, failure, err) {
   error.log('admin', functionName, failure, err);
@@ -209,6 +210,19 @@ var getUsers = function() {
   };
 };
 
+var getOwerRequests = function() {
+  return function(req, res) {
+    OwerRequestModel.find(function(err, owerRequests) {
+      if (err) {
+        debug.log('adminHandlers.js: getOwerRequests: Error finding owers: ' + err);
+        return error.server(res);
+      }
+
+      return res.json(owerRequests);
+    });
+  };
+};
+
 var getOwers = function() {
   return function(req, res) {
     OwerModel.find(function(err, owers) {
@@ -245,6 +259,11 @@ exports.deleteClient = [
 exports.users = [
   admin,
   getUsers()
+];
+
+exports.owerRequests = [
+  admin,
+  getOwerRequests()
 ];
 
 exports.owers = [
