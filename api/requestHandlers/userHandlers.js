@@ -327,14 +327,12 @@ var newOwer = function(req, res) {
             return error.server(res);
           }
 
-          // if the user has, then confirm the tethered owers and send
           if (ower) {
-            return sendOwer(user.name, ower);
-
-            // remove this code
-            return ower.save(function(err) {
+            return OwerRequestModel.find({
+              to: facebookId
+            }).remove(function(err) {
               if (err) {
-                logError('newOwer', 'ower.save', err);
+                logError('newOwer', 'OwerRequestModel.find', err);
                 return error.server(res);
               }
 
@@ -496,7 +494,16 @@ var putOwer = function(req, res) {
                 return error.server(res);
               }
 
-              return res.json(tetheredOwer);
+              return OwerRequestModel.find({
+                to: facebookId
+              }).remove(function(err) {
+                if (err) {
+                  logError('putOwer', 'OwerRequestModel.find.remove', err);
+                  return error.server(res);
+                }
+
+                return res.json(tetheredOwer);
+              });
             });
           });
         });
