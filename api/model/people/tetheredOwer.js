@@ -4,15 +4,21 @@ var mongoose = require('mongoose')
   , Ower     = require('./ower.js').Ower;
 
 var TetheredOwer = Ower.extend({
-  user: {
+  tetheredTo: {
     type:     Number, // facebook ID
     required: true
+  },
+  counterpart: {
+    type: Schema.Types.ObjectId,
+    ref:  'TetheredOwer'
   }
 });
 
 TetheredOwer.methods.toJSON = function() {
   var obj = this.toObject();
-  delete obj.__v;
+  if (!process.env.DEBUG) {
+    delete obj.__v;
+  }
   return obj;
 }
 

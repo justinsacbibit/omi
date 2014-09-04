@@ -1,7 +1,9 @@
 var passport    = require('passport')
   , ClientModel = require('../model/auth/client.js').ClientModel
   , UserModel   = require('../model/people/user.js').UserModel
-  , error       = require('./error.js');
+  , OwerModel   = require('../model/people/ower.js').OwerModel
+  , error       = require('./error.js')
+  , debug       = require('../debug.js');
 
 var logError = function(functionName, failure, err) {
   error.log('admin', functionName, failure, err);
@@ -194,13 +196,28 @@ var newClient = function() {
 
 var getUsers = function() {
   return function(req, res) {
-    UserModel.find(function(err, users) {
+    UserModel.find({
+      _type: 'User'
+    }, function(err, users) {
       if (err) {
         console.log('adminHandlers.js: getUsers(): Error finding users: ' + err);
         return error.server(res);
       }
 
       return res.json(users);
+    });
+  };
+};
+
+var getOwers = function() {
+  return function(req, res) {
+    OwerModel.find(function(err, owers) {
+      if (err) {
+        debug.log('adminHandlers.js: getOwers(): Error finding owers: ' + err);
+        return error.server(res);
+      }
+
+      return res.json(owers);
     });
   };
 };
@@ -228,4 +245,9 @@ exports.deleteClient = [
 exports.users = [
   admin,
   getUsers()
+];
+
+exports.owers = [
+  admin,
+  getOwers()
 ];

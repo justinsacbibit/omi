@@ -3,7 +3,7 @@ var adminHandlers = require('./requestHandlers/adminHandlers.js')
   , userHandlers  = require('./requestHandlers/userHandlers.js')
   , omiHandlers   = require('./requestHandlers/omiHandlers.js');
 
-var routes = function(Router, passport, ownership) {
+var routes = function(Router, passport, ownership, token) {
   // Admin endpoints
   // TODO: Create OSX app that uses these endpoints
   Router.route('/admin/clients')
@@ -18,23 +18,15 @@ var routes = function(Router, passport, ownership) {
   .get(adminHandlers.users)
   .post(adminHandlers.users);
 
-  // All endpoints require an access token
-  var token = passport.authenticate('bearer', {
-    session: false
-  });
+  Router.route('/admin/owers')
+  .get(adminHandlers.owers);
 
-  // Login / logout endpoints
   Router.route('/token')
   .post(authHandlers.login)
   .delete(token, authHandlers.logout);
 
   Router.route('/userInfo')
-  .get(token, function(req, res) {
-    res.json({
-      facebook_id: req.user.facebookId,
-      name:        req.user.name
-    });
-  });
+  .get(token, userHandlers.userInfo);
 
   Router.route('/users/:facebook_id')
   .get(token, userHandlers.user);
@@ -48,20 +40,20 @@ var routes = function(Router, passport, ownership) {
 
   Router.route('/users/:facebook_id/owers/:ower_id')
   .get([token, ownership], userHandlers.ower)
-  .put([token, ownership], userHandlers.editOwer)
+  .put([token, ownership], userHandlers.putOwer) // TODO, used for converting a local ower into a facebook ower
   .delete([token, ownership], userHandlers.removeOwer);
 
   Router.route('/omis')
-  .get(token, omiHandlers.omis)
-  .post(token, omiHandlers.newOmi);
+  .get(token, omiHandlers.omis) // TODO
+  .post(token, omiHandlers.newOmi); // TODO
 
   Router.route('/omis/:omi_id')
-  .get(token, omiHandlers.omi)
-  .put(token, omiHandlers.editOmi)
-  .delete(token, omiHandlers.removeOmi);
+  .get(token, omiHandlers.omi) // TODO
+  .put(token, omiHandlers.putOmi) // TODO, used for confirming omis?
+  .delete(token, omiHandlers.removeOmi); // TODO
 };
 
-exports.use = function(Router, passport, ownership) {
-  routes(Router, passport, ownership);
+exports.use = function(Router, passport, ownership, token) {
+  routes(Router, passport, ownership, token);
   return Router;
 };

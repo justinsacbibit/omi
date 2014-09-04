@@ -5,11 +5,6 @@ var mongoose = require('mongoose')
   , FBToken  = require('../auth/fbToken.js').FBToken;
 
 var User = Ower.extend({
-  facebookId: {
-    type:     Number,
-    required: true,
-    unique:   true
-  },
   email: {
     type: String
   },
@@ -20,7 +15,9 @@ var User = Ower.extend({
 
 User.methods.toJSON = function() {
   var obj = this.toObject();
-  delete obj.__v;
+  if (!process.env.DEBUG) {
+    delete obj.__v;
+  }
   delete obj.fbToken;
   return obj;
 }

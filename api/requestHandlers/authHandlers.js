@@ -108,7 +108,8 @@ var login = function(req, res) {
       var facebookId = fbToken.facebookId;
 
       UserModel.findOne({
-        facebookId: facebookId
+        facebookId: facebookId,
+        _type: 'User'
       }, function(err, user) {
         if (err) {
           logError('login', 'UserModel.findOne');

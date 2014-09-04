@@ -5,11 +5,19 @@ var notFound = function(req, res, next) {
 };
 
 var ownership = function(req, res, next) {
-  if (req.user.facebookId != req.param('facebook_id')) {
+  var facebookId = req.param('facebook_id')
+    , user       = req.user;
+
+  if (user.facebookId != facebookId) {
     if (process.env.DEBUG) {
-      console.log(req.user);
-      console.log(req.param('facebook_id'));
+      console.log(user);
+      console.log(facebookId);
     }
+
+    if (isNaN(facebookId)) {
+      return error.badRequest(res, 'Invalid parameter: facebook_id must be a number');
+    }
+
     return error.forbidden(res);
   }
 

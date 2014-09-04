@@ -11,16 +11,7 @@ var Ower = new Schema({
     required: true
   },
   facebookId: {
-    type:   Number,
-    unique: true
-  },
-  owers: {
-    type: [Schema.Types.ObjectId],
-    ref:  'Ower'
-  },
-  omis: {
-    type: [Schema.Types.ObjectId],
-    ref:  'Omi'
+    type: Number
   }
 }, {
   discriminatorKey: '_type'
@@ -28,7 +19,9 @@ var Ower = new Schema({
 
 Ower.methods.toJSON = function() {
   var obj = this.toObject();
-  delete obj.__v;
+  if (!process.env.DEBUG) {
+    delete obj.__v;
+  }
   return obj;
 }
 

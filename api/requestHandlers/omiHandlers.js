@@ -13,7 +13,7 @@ var getOmi = function(req, res) {
   return error.notImplemented(res);
 };
 
-var editOmi = function(req, res) {
+var putOmi = function(req, res) {
   return error.notImplemented(res);
 };
 
@@ -24,5 +24,5 @@ var removeOmi = function(req, res) {
 exports.omis = getOmis;
 exports.newOmi = newOmi;
 exports.omi = getOmi;
-exports.editOmi = editOmi;
+exports.putOmi = putOmi;
 exports.removeOmi = removeOmi;

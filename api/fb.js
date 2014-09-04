@@ -61,6 +61,12 @@ exports.login = function(fbAccessToken, done) {
 
     data = data['data'];
 
+    if (!data['user_id']) {
+      return done(null, false, {
+        message: 'Missing user_id in FB responses'
+      });
+    }
+
     var facebookId = parseInt(data['user_id'])
       , app_id     = data['app_id']
       , scopes     = data['scopes'];

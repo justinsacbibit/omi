@@ -5,7 +5,8 @@ var UserModel         = require('../model/people/user.js').UserModel
   , error             = require('./error.js')
   , fb                = require('../fb.js')
   , paginate          = require('../paginate.js')
-  , debug             = require('../debug.js');
+  , debug             = require('../debug.js')
+  , _                 = require('underscore');
 
 var ascending = function(key) {
   return function(a, b) {
@@ -22,8 +23,19 @@ var logError = function(functionName, failure, err) {
   error.log('user', functionName, failure, err);
 };
 
+var userInfo = function(req, res) {
+  return res.json({
+    facebook_id: req.user.facebookId,
+    name:        req.user.name
+  });
+};
+
 var getUser = function(req, res) {
   var facebookId = req.param('facebook_id');
+
+  if (isNaN(facebookId)) {
+    return error.badRequest(res, 'Invalid parameter: facebook_id must be a number');
+  }
 
   UserModel.findOne({
     facebookId: facebookId
@@ -31,6 +43,10 @@ var getUser = function(req, res) {
     if (err) {
       logError('getUser', 'UserModel.findOne', err);
       return error.server(res);
+    }
+
+    if (!user) {
+      return error.notFound(res, 'User');
     }
 
     return res.json(user);
@@ -182,7 +198,7 @@ var newOwer = function(req, res) {
   }
 
   var conditions = {
-    user:  facebookId,
+    tetheredTo:  facebookId,
     _type: 'TetheredOwer'
   };
 
@@ -196,6 +212,7 @@ var newOwer = function(req, res) {
     conditions['name'] = name;
   }
 
+  // first check if the same tethered ower exists
   return TetheredOwerModel.findOne(conditions, function(err, tetheredOwer) {
     if (err) {
       logError('newOwer', 'TetheredOwerModel.findOne', err);
@@ -206,14 +223,18 @@ var newOwer = function(req, res) {
       return error.exists(res, 'Ower');
     }
 
-    var sendOwer = function(owerName) {
+    var sendOwer = function(owerName, existingOwer) {
       var properties = {
         name: owerName,
-        user: facebookId
+        tetheredTo: facebookId
       };
 
       if (owerFbId) {
         properties['facebookId'] = owerFbId;
+      }
+
+      if (existingOwer) {
+        properties['counterpart'] = existingOwer._id;
       }
 
       tetheredOwer = new TetheredOwerModel(properties);
@@ -224,18 +245,24 @@ var newOwer = function(req, res) {
           return error.server(res);
         }
 
-        req.user.owers.push(tetheredOwer._id);
-        req.user.save(function(err) {
-          if (err) {
-            logError('newOwer', 'user.save', err);
-          }
-        });
+        if (existingOwer) {
+          existingOwer.counterpart = tetheredOwer._id;
+          return existingOwer.save(function(err) {
+            if (err) {
+              logError('newOwer', 'existingOwer.save', err);
+              debug.log('Unable to update existing ower counterpart');
+            }
+
+            return res.status(201).json(tetheredOwer);
+          });
+        }
 
         return res.status(201).json(tetheredOwer);
       });
     };
 
     if (owerFbId) {
+      // using a facebook friend to create a tethered ower
       return UserModel.findOne({
         facebookId: owerFbId
       }, function(err, user) {
@@ -248,10 +275,49 @@ var newOwer = function(req, res) {
           return error.notFound(res, 'Facebook user');
         }
 
-        return sendOwer(user.name);
+        /**
+         * If the user has the requester as an ower
+         *     Create new tetheredOwer obj
+         *     Set counterpart ID on both tetheredOwer objs to point to each other
+         * Else
+         *     Create new tetheredOwer obj
+         */
+
+        // check if the user has added the requester as an ower
+        return TetheredOwerModel.findOne({
+          tetheredTo: user.facebookId,
+          facebookId: facebookId,
+          _type: 'TetheredOwer'
+        }, function(err, ower) {
+          if (err) {
+            logError('newOwer', 'OwerModel.findOne', err);
+            return error.server(res);
+          }
+
+          // if the user has, then confirm the tethered owers and send
+          if (ower) {
+            return sendOwer(user.name, ower);
+
+            // remove this code
+            return ower.save(function(err) {
+              if (err) {
+                logError('newOwer', 'ower.save', err);
+                return error.server(res);
+              }
+
+              return sendOwer(user.name, ower);
+            });
+          }
+
+          // TODO: send a request to this user
+
+          // if the user hasn't, create a tethered ower and send it
+          return sendOwer(user.name);
+        });
       });
     }
 
+    // only using a name, create a tethered ower and send it
     return sendOwer(name);
   });
 };
@@ -279,18 +345,66 @@ var getOwer = function(req, res) {
   });
 };
 
-var editOwer = function(req, res) {
+var putOwer = function(req, res) {
   return error.notImplemented(res);
 };
 
 var removeOwer = function(req, res) {
-  return error.notImplemented(res);
+  var fbToken    = req.user.fbToken[0]
+    , owerId     = req.param('ower_id');
+
+  if (!checkToken(res, fbToken)) {
+    return;
+  }
+
+  TetheredOwerModel.findOne({
+    _id: owerId,
+    _type: 'TetheredOwer'
+  }, function(err, tetheredOwer) {
+    if (err) {
+      logError('removeOwer', 'TetheredOwerModel.findById', err);
+      return error.server(res);
+    }
+
+    if (!tetheredOwer) {
+      return error.notFound(res, 'Tethered ower');
+    }
+
+    tetheredOwer.remove(function(err) {
+      if (err) {
+        logError('removeOwer', 'tetheredOwer.remove', err);
+        return error.server(res);
+      }
+
+      var counterpartId = tetheredOwer.counterpart;
+      if (counterpartId) {
+        TetheredOwerModel.findById(counterpartId, function(err, counterpartOwer) {
+          if (err) {
+            logError('removeOwer', 'TetheredOwerModel.findById', err);
+          }
+
+          counterpartOwer.counterpart = undefined;
+          counterpartOwer.save(function(err) {
+            if (err) {
+              logError('removeOwer', 'counterpartOwer.save', err);
+              debug.log('Error removing counterpart ID');
+            }
+          });
+        });
+      }
+
+      return res.json({
+        success: true
+      });
+    });
+  });
 };
 
+exports.userInfo = userInfo;
 exports.user = getUser;
 exports.friends = getFriends;
 exports.owers = getOwers;
 exports.newOwer = newOwer;
 exports.ower = getOwer;
-exports.editOwer = editOwer;
+exports.putOwer = putOwer;
 exports.removeOwer = removeOwer;
