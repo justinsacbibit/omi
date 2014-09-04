@@ -4,13 +4,11 @@ var mongoose = require('mongoose')
 var FBToken = new Schema({
   facebookId: {
     type:     String,
-    required: true,
-    unique:   true
+    required: true
   },
   token: {
     type:     String,
-    unique:   true,
-    required: true
+    unique:   true
   },
   scopes: {
     type:     [String],
