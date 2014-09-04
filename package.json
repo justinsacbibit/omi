@@ -29,6 +29,7 @@
     "passport-http-bearer": "^1.0.1",
     "restler": "^3.2.2",
     "body-parser": "^1.6.7",
-    "underscore": "^1.7.0"
+    "underscore": "^1.7.0",
+    "mocha": "^1.21.4"
   }
 }
