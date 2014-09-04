@@ -80,7 +80,7 @@ exports.login = function(fbAccessToken, done) {
       });
     }
 
-    if (typeof facebookId !== 'number') {
+    if (isNaN(facebookId)) {
       debug.log('Facebook ID has wrong type');
       debug.log(data);
 
