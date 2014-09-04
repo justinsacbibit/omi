@@ -19,8 +19,8 @@ var ascending = function(key) {
   };
 };
 
-var logError = function(functionName, failure, err) {
-  error.log('user', functionName, failure, err);
+var logError = function(functionName, failure, err, description) {
+  error.log('user', functionName, failure, err, description);
 };
 
 var userInfo = function(req, res) {
@@ -147,7 +147,7 @@ var getOwers = function(req, res) {
   }
 
   if (name && fbFilterId) {
-    return error.badRequest(res, 'Cannot filter by name and facebook_id simultaneously');
+    return error.badRequest(res, 'Invalid parameters: Cannot filter by name and facebook_id simultaneously');
   }
 
   if (fbFilterId && type) {
@@ -346,7 +346,59 @@ var getOwer = function(req, res) {
 };
 
 var putOwer = function(req, res) {
-  return error.notImplemented(res);
+  var fbToken = req.user.fbToken[0]
+    , owerId  = req.param('ower_id')
+    , newName = req.body.name
+    , newFbId = req.body.facebook_id;
+
+  if (!checkToken(res, fbToken)) {
+    return;
+  }
+
+  if (newName && newFbId) {
+    return error.badRequest(res, 'Invalid parameters: Must only send name or facebook_id');
+  } else if (!newName && !newFbId) {
+    return error.missingParam(res, 'name or facebook_id');
+  }
+
+  TetheredOwerModel.findOne({
+    _id: owerId,
+    _type: 'TetheredOwer'
+  }, function(err, tetheredOwer) {
+    if (err) {
+      logError('putOwer', 'TetheredOwerModel.findOne', err);
+      return error.server(res);
+    }
+
+    if (!tetheredOwer) {
+      return error.notFound(res, 'Tethered ower');
+    }
+
+    if (tetheredOwer.facebookId) {
+      if (newName) {
+        return error.conflict(res, 'Cannot update name for a tethered ower linked to a Facebook account');
+      }
+
+      return error.conflict(res, 'Cannot update Facebook ID for a tethered ower already linked to a Facebook account');
+    }
+
+    if (newName) {
+      tetheredOwer.name = newName;
+    } else {
+      tetheredOwer.facebookId = facebookId;
+
+      // TODO: Make a request or add counterpart
+    }
+
+    tetheredOwer.save(function(err) {
+      if (err) {
+        logError('putOwer', 'tetheredOwer.save', err);
+        return error.server(res);
+      }
+
+      return res.json(tetheredOwer);
+    });
+  });
 };
 
 var removeOwer = function(req, res) {
@@ -375,6 +427,8 @@ var removeOwer = function(req, res) {
         logError('removeOwer', 'tetheredOwer.remove', err);
         return error.server(res);
       }
+
+      // TODO: Remove omis
 
       var counterpartId = tetheredOwer.counterpart;
       if (counterpartId) {

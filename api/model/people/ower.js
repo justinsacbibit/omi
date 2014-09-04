@@ -23,7 +23,7 @@ Ower.methods.toJSON = function() {
     delete obj.__v;
   }
   return obj;
-}
+};
 
 var OwerModel = mongoose.model('Ower', Ower, 'owers');
 

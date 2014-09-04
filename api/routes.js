@@ -40,17 +40,49 @@ var routes = function(Router, passport, ownership, token) {
 
   Router.route('/users/:facebook_id/owers/:ower_id')
   .get([token, ownership], userHandlers.ower)
-  .put([token, ownership], userHandlers.putOwer) // TODO, used for converting a local ower into a facebook ower
+
+  /**
+   * TODO
+   * Major: Send a request, and/or add the counterpart
+   */
+  .put([token, ownership], userHandlers.putOwer)
+
+  /**
+   * WIP
+   * Major: Send a request
+   * Minor: Omis for the tethered ower should be removed?
+   */
   .delete([token, ownership], userHandlers.removeOwer);
 
   Router.route('/omis')
-  .get(token, omiHandlers.omis) // TODO
-  .post(token, omiHandlers.newOmi); // TODO
+
+  /**
+   * TODO
+   */
+  .get(token, omiHandlers.omis)
+
+  /**
+   * TODO
+   */
+  .post(token, omiHandlers.newOmi);
 
   Router.route('/omis/:omi_id')
-  .get(token, omiHandlers.omi) // TODO
-  .put(token, omiHandlers.putOmi) // TODO, used for confirming omis?
-  .delete(token, omiHandlers.removeOmi); // TODO
+
+  /**
+   * TODO
+   */
+  .get(token, omiHandlers.omi)
+
+  /**
+   * TODO
+   */
+  .put(token, omiHandlers.putOmi)
+
+  /**
+   * TODO
+   * @note Used for confirming omis?
+   */
+  .delete(token, omiHandlers.removeOmi);
 };
 
 exports.use = function(Router, passport, ownership, token) {

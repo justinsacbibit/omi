@@ -12,10 +12,13 @@ var errorJSON = function(message, code) {
   return JSON;
 }
 
-var builder = function(moduleName, functionName, message, error) {
+var builder = function(moduleName, functionName, message, description, error) {
   var errorString = moduleName + 'Handlers.js: ' + functionName;
   errorString += ': ' + message;
-  errorString += ', error: ' + error;
+  if (description) {
+    errorString += '\nDescription: ' + description;
+  }
+  errorString += '\nError: ' + error;
   return errorString;
 };
 
@@ -39,6 +42,10 @@ exports.exists = function(res, resource, errorCode) {
   return respond(res, 409, resource + ' already exists', errorCode);
 };
 
+exports.conflict = function(res, messageStr, errorCode) {
+  return respond(res, 409, messageStr, errorCode);
+}
+
 exports.notFound = function(res, resource, errorCode) {
   return respond(res, 404, resource + ' not found', errorCode);
 };
@@ -60,6 +67,6 @@ exports.gateway = function(res, messageStr, errorCode) {
   return respond(res, 502, messageStr, errorCode);
 };
 
-exports.log = function(moduleName, functionName, failure, error) {
-  console.log(builder(moduleName, functionName, failure + ' failed', error));
+exports.log = function(moduleName, functionName, failure, error, description) {
+  console.log(builder(moduleName, functionName, failure + ' failed', description, error));
 };
