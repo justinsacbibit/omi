@@ -47,15 +47,10 @@ var routes = function(Router, passport, ownership, token) {
   Router.route('/users/:facebook_id/owers/:ower_id')
   .get([token, ownership], userHandlers.ower)
 
-  /**
-   * TODO
-   * Major: Send a request, and/or add the counterpart
-   */
   .put([token, ownership], userHandlers.putOwer)
 
   /**
    * WIP
-   * Major: Send a request
    * Minor: Omis for the tethered ower should be removed?
    */
   .delete([token, ownership], userHandlers.removeOwer);
@@ -81,12 +76,11 @@ var routes = function(Router, passport, ownership, token) {
 
   /**
    * TODO
-   */
+   * @note Used for confirming omis?
   .put(token, omiHandlers.putOmi)
 
   /**
    * TODO
-   * @note Used for confirming omis?
    */
   .delete(token, omiHandlers.removeOmi);
 };
