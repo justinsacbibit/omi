@@ -24,13 +24,13 @@
     "express": "^4.8.7",
     "mongoose": "^3.8.15",
     "nodemailer": "^1.2.1",
-    "mongoose-schema-extend": "^0.1.7",
     "passport": "^0.2.1",
     "passport-http-bearer": "^1.0.1",
     "restler": "^3.2.2",
     "body-parser": "^1.6.7",
     "underscore": "^1.7.0",
     "mocha": "^1.21.4",
-    "q": "^1.0.1"
+    "bluebird": "^2.3.2",
+    "subclass-error": "0.0.2"
   }
 }
