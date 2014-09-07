@@ -22,9 +22,9 @@ module.exports = function(req, res, conditions) {
       return false;
     }
 
-    conditions['skip'] = offset;
+    conditions.skip = offset;
   } else if (limit) {
-    error.missingParam(res, 'skip');
+    error.missingParam(res, 'offset');
     return false;
   }
 
