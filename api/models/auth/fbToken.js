@@ -7,8 +7,7 @@ var FBToken = new Schema({
     required: true
   },
   token: {
-    type:     String,
-    unique:   true
+    type: String
   },
   scopes: {
     type:     [String],

@@ -27,7 +27,7 @@ var Transaction = new Schema({
     },
     confirmed: {
       type:    Boolean,
-      default: false
+      default: true
     },
     type: {
       type:     String,
@@ -39,6 +39,14 @@ var Transaction = new Schema({
       ref:  'GroupOmi'
     }
 });
+
+Transaction.path('amount').validate(function(v) {
+  return v >= 0.01;
+});
+
+Transaction.path('from').validate(function(v) {
+  return !this.to.equals(v);
+}, 'ServerError');
 
 Transaction.methods.toJSON = function() {
   var obj = this.toObject();

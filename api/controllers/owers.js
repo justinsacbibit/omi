@@ -142,7 +142,8 @@ exports.create = function(req, res) {
 
     return ower.saveAsync();
   })
-  .then(function(ower) {
+  .then(function(data) {
+    var ower = data[0];
     if (existingOwer) {
       existingOwer.counterpart = ower._id;
       return existingOwer.saveAsync()

@@ -87,7 +87,8 @@ exports.login = function(req, res) {
       },
       user: {
         facebook_id: facebookId,
-        name:        user.name
+        name:        user.name,
+        id:          user._id
       }
     });
   })

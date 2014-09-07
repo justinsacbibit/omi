@@ -1,8 +1,9 @@
-var clients    = require('../controllers/clients.js')
-  , owers      = require('../controllers/owers.js')
-  , users      = require('../controllers/users.js')
-  , requests   = require('../controllers/requests.js')
-  , middleware = require('../utils/middleware.js');
+var clients      = require('../controllers/clients.js')
+  , owers        = require('../controllers/owers.js')
+  , users        = require('../controllers/users.js')
+  , transactions = require('../controllers/transactions.js')
+  , requests     = require('../controllers/requests.js')
+  , middleware   = require('../utils/middleware.js');
 
 var isAdmin = middleware.validAdminCredentials;
 
@@ -24,4 +25,7 @@ module.exports = function(Router) {
 
   Router.route('/admin/requests/owers')
     .get(isAdmin, requests.owers.all);
+
+  Router.route('/admin/transactions')
+    .get(isAdmin, transactions.all);
 };

@@ -16,8 +16,8 @@ var respond = function(res, statusCode, message, errorCode) {
   return res.status(statusCode).json(errorJSON(message, errorCode));
 };
 
-var server = exports.server = function(res) {
-  return respond(res, 500, 'Server error', 100);
+var server = exports.server = function(res, message) {
+  return respond(res, 500, message ? message : 'Server error', 100);
 };
 
 var badRequest = exports.badRequest = function(res, message) {
@@ -90,4 +90,8 @@ var gatewayHandler = exports.gatewayHandler = function(res) {
 
 var conflictHandler = exports.conflictHandler = function(res) {
   return errorCallback(res, conflict);
+};
+
+var forbiddenHandler = exports.forbiddenHandler = function(res) {
+  return errorCallback(res, forbidden);
 };

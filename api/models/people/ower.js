@@ -23,7 +23,7 @@ var Ower = new Schema({
   },
   counterpart: {
     type: Schema.Types.ObjectId,
-    ref:  'TetheredOwer'
+    ref:  'Ower'
   },
   type: {
     type:    String,
