@@ -108,13 +108,13 @@ exports.create = function(req, res) {
           return OwerRequestModel.findOneAndRemoveAsync({
             to: facebookId,
             type: 'ower'
-          })
+          });
         }
 
         // if they haven't, create an ower request
         var owerRequest = new OwerRequestModel({
           from: facebookId,
-          to:   user.facebookId
+          to:   facebookUser.facebookId
         });
 
         return owerRequest.saveAsync();
