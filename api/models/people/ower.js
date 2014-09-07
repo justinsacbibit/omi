@@ -17,9 +17,17 @@ var Ower = new Schema({
     type:     Number,
     required: true
   },
+  balance: {
+    type:    Number,
+    default: 0
+  },
   counterpart: {
     type: Schema.Types.ObjectId,
     ref:  'TetheredOwer'
+  },
+  type: {
+    type:    String,
+    default: 'ower'
   }
 });
 
@@ -31,7 +39,7 @@ Ower.methods.toJSON = function() {
   return obj;
 };
 
-var OwerModel = mongoose.model('Ower', Ower);
+var OwerModel = mongoose.model('Ower', Ower, 'people');
 
 exports.Ower = Ower;
 exports.OwerModel = OwerModel;

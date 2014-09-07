@@ -1,10 +1,26 @@
 var mongoose    = require('mongoose')
-  , extend      = require('mongoose-schema-extend')
-  , Schema      = mongoose.Schema
-  , Transaction = require('./transaction.js').Transaction
-  , Omi         = require('./omi.js').Omi;
+  , Schema      = mongoose.Schema;
 
-var GroupOmi = Transaction.extend({
+var GroupOmi = new Schema({
+  name: {
+    type:     String,
+    required: true
+  },
+  amount: {
+    type:     Number,
+    required: true
+  },
+  note: {
+    type: String
+  },
+  from: {
+    type:     Schema.Types.ObjectId,
+    required: true
+  },
+  created: {
+    type:    Date,
+    default: Date.now
+  },
   omis: {
     type:     [Schema.Types.ObjectId],
     ref:      'Omi',

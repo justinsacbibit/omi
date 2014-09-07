@@ -13,9 +13,12 @@ var Transaction = new Schema({
     note: {
       type: String
     },
-    owner: {
+    from: {
       type:     Schema.Types.ObjectId,
-      ref:      'Ower',
+      required: true
+    },
+    to: {
+      type:     Schema.Types.ObjectId,
       required: true
     },
     created: {
@@ -25,9 +28,26 @@ var Transaction = new Schema({
     confirmed: {
       type:    Boolean,
       default: false
+    },
+    type: {
+      type:     String,
+      enum:     ['omi', 'payment'],
+      required: true
+    },
+    groupOmi: {
+      type: Schema.Types.ObjectId,
+      ref:  'GroupOmi'
     }
-}, {
-  discriminatorKey: '_type'
 });
 
-exports.Transaction = Transaction;
+Transaction.methods.toJSON = function() {
+  var obj = this.toObject();
+  if (!process.env.DEBUG) {
+    delete obj.__v;
+  }
+  return obj;
+}
+
+var TransactionModel = mongoose.model('Transaction', Transaction);
+
+exports.TransactionModel = TransactionModel;

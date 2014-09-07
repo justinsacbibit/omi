@@ -21,6 +21,10 @@ var User = new Schema({
     type:     Number,
     required: true,
     unique:   true
+  },
+  type: {
+    type:    String,
+    default: 'user'
   }
 });
 
@@ -33,6 +37,6 @@ User.methods.toJSON = function() {
   return obj;
 }
 
-var UserModel = mongoose.model('User', User);
+var UserModel = mongoose.model('User', User, 'people');
 
 exports.UserModel = UserModel;
