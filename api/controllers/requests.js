@@ -1,4 +1,5 @@
 var OwerRequestModel = require('../models/requests/owerRequest.js').OwerRequestModel
+  , OmiRequestModel  = require('../models/requests/omiRequest.js').OmiRequestModel
   , error            = require('../utils/error.js');
 
 var allOwerRequests = function(req, res) {
@@ -27,6 +28,14 @@ var allOwerRequests = function(req, res) {
   .catch(error.serverHandler(res));
 };
 
+var allOmiRequests = function(req, res) {
+  return error.notImplemented(res);
+};
+
 exports.owers = {
   all: allOwerRequests
+};
+
+exports.omis = {
+  all: allOmiRequests
 };

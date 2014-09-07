@@ -15,7 +15,9 @@ exports.all = function(req, res) {
     , name       = req.query.name
     , fbFilterId = req.query.facebook_id;
 
-  var conditions = {};
+  var conditions = {
+    type: 'ower'
+  };
 
   if (!paginate(req, res, conditions)) {
     return;
@@ -54,6 +56,7 @@ exports.create = function(req, res) {
 
   var conditions = {
     tetheredTo: facebookId
+    type:       'ower'
   };
 
   if (!name) {
@@ -80,6 +83,7 @@ exports.create = function(req, res) {
       // find that user
       return UserModel.findOneAsync({
         facebookId: owerFbId
+        type:       'user'
       })
       .then(function(user) {
         if (!user) {
@@ -92,6 +96,7 @@ exports.create = function(req, res) {
         return OwerModel.findOneAsync({
           tetheredTo: user.facebookId,
           facebookId: facebookId
+          type:       'ower'
         });
       })
       .then(function(ower) {
@@ -100,6 +105,7 @@ exports.create = function(req, res) {
           // if they have, then remove the ower request
           return OwerRequestModel.findOneAndRemoveAsync({
             to: facebookId
+            type: 'ower'
           })
         }
 
@@ -158,7 +164,7 @@ exports.show = function(req, res) {
 
   OwerModel.findByIdAsync(owerId)
   .then(function(ower) {
-    if (!ower) {
+    if (!ower || ower.type !== 'ower') {
       throw new NotFoundError('Ower not found');
     }
 
@@ -180,7 +186,8 @@ exports.update = function(req, res) {
   }
 
   OwerModel.findOneAsync({
-    _id: owerId
+    _id:  owerId,
+    type: 'ower'
   })
   .then(function(ower) {
     if (!ower) {
@@ -205,7 +212,8 @@ exports.update = function(req, res) {
     }
 
     return UserModel.findOneAsync({
-      facebookId: newFbId
+      facebookId: newFbId,
+      type:       'user'
     })
     .then(function(user) {
       if (!user) {
@@ -216,7 +224,8 @@ exports.update = function(req, res) {
 
       return OwerModel.findOneAsync({
         tetheredTo: facebookId,
-        facebookId: newFbId
+        facebookId: newFbId,
+        type:       'ower'
       })
     })
     .then(function(counterpartOwer) {
@@ -242,7 +251,8 @@ exports.update = function(req, res) {
       return counterpartOwer.saveAsync()
       .then(function(counterpartOwer) {
         return OwerRequestModel.findOneAndRemoveAsync({
-          to: facebookId
+          to:   facebookId,
+          type: 'ower'
         });
       })
       .then(function(owerRequest) {
@@ -262,7 +272,8 @@ exports.delete = function(req, res) {
   var owerId = req.param('ower_id');
 
   OwerModel.findOneAndRemoveAsync({
-    _id: owerId
+    _id:  owerId,
+    type: 'ower'
   })
   .then(function(ower) {
     if (!ower) {
