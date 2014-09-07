@@ -55,7 +55,7 @@ exports.create = function(req, res) {
   }
 
   var conditions = {
-    tetheredTo: facebookId
+    tetheredTo: facebookId,
     type:       'ower'
   };
 
@@ -82,7 +82,7 @@ exports.create = function(req, res) {
 
       // find that user
       return UserModel.findOneAsync({
-        facebookId: owerFbId
+        facebookId: owerFbId,
         type:       'user'
       })
       .then(function(user) {
@@ -95,7 +95,7 @@ exports.create = function(req, res) {
         // check if the existing Facebook user has added the logged in Facebook user as an ower
         return OwerModel.findOneAsync({
           tetheredTo: user.facebookId,
-          facebookId: facebookId
+          facebookId: facebookId,
           type:       'ower'
         });
       })
@@ -104,7 +104,7 @@ exports.create = function(req, res) {
           existingOwer = ower;
           // if they have, then remove the ower request
           return OwerRequestModel.findOneAndRemoveAsync({
-            to: facebookId
+            to: facebookId,
             type: 'ower'
           })
         }

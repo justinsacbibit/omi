@@ -33,7 +33,8 @@ exports.login = function(req, res) {
     facebookId = fbToken.facebookId;
 
     return UserModel.findOneAsync({
-      facebookId: facebookId
+      facebookId: facebookId,
+      type:       'user'
     });
   })
   .then(function(aUser) {
@@ -57,7 +58,8 @@ exports.login = function(req, res) {
   .then(function() {
     return AccessTokenModel.findOneAsync({
       clientId:   req.client.clientId,
-      facebookId: facebookId
+      facebookId: facebookId,
+      type:       'user'
     });
   })
   .then(function(token) {
@@ -99,7 +101,8 @@ exports.logout = function(req, res) {
 
   AccessTokenModel.findOneAndRemoveAsync({
     clientId:   clientId,
-    facebookId: facebookId
+    facebookId: facebookId,
+    type:       'user'
   })
   .then(function(accessToken) {
     if (!accessToken) {
@@ -121,7 +124,9 @@ exports.info = function(req, res) {
 };
 
 exports.all = function(req, res) {
-  UserModel.findAsync()
+  UserModel.findAsync({
+    type: 'user'
+  })
   .then(function(users) {
     res.json(users);
   })
@@ -132,7 +137,8 @@ exports.show = function(req, res) {
   var facebookId = parseInt(req.param('facebook_id'));
 
   UserModel.findOneAsync({
-    facebookId: facebookId
+    facebookId: facebookId,
+    type:       'user'
   })
   .then(function(user) {
     if (!user) {
