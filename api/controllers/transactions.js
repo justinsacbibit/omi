@@ -21,6 +21,43 @@ var changeBalance = function(ower, owerIsReceiving, type, amount) {
   return ower;
 };
 
+var orConditions = function(user, facebookId, conditions) {
+  var orConditions = [
+    {
+      from: user._id
+    },
+    {
+      to: user._id
+    }
+  ];
+
+  var findOwerConditions = {
+    type: 'ower'
+  };
+
+  if (facebookId) {
+    findOwerConditions.facebookId = facebookId;
+  }
+
+  return OwerModel.findAsync(findOwerConditions)
+  .then(function(owers) {
+    for (var i = 0; i < owers.length; i++) {
+      var ower = owers[i];
+
+      orConditions.push({
+        from: ower._id
+      });
+
+      orConditions.push({
+        to: ower._id
+      });
+    }
+
+    conditions.$or = orConditions;
+    return conditions;
+  });
+};
+
 exports.all = function(req, res) {
   var facebookId = req.param('facebook_id')
     , user       = req.user
@@ -43,40 +80,7 @@ exports.all = function(req, res) {
   var promise = Promise.delay(0);
 
   if (user) {
-    var orConditions = [
-      {
-        from: user._id
-      },
-      {
-        to: user._id
-      }
-    ];
-
-    var findOwerConditions = {
-      type: 'ower'
-    };
-
-    if (facebookId) {
-      findOwerConditions.facebookId = facebookId;
-    }
-
-    promise = OwerModel.findAsync(findOwerConditions)
-    .then(function(owers) {
-      for (var i = 0; i < owers.length; i++) {
-        var ower = owers[i];
-
-        orConditions.push({
-          from: ower._id
-        });
-
-        orConditions.push({
-          to: ower._id
-        });
-      }
-
-      conditions.$or = orConditions;
-      return conditions;
-    });
+    promise = orConditions(user, facebookId, conditions);
   }
 
   promise.then(function() {
@@ -148,7 +152,42 @@ exports.create = function(req, res) {
 };
 
 exports.show = function(req, res) {
-  return error.notImplemented(res);
+  var transactionId = req.param('transaction_id')
+    , user          = req.user;
+
+  TransactionModel.findByIdAsync(transactionId)
+  .then(function(transaction) {
+    if (!transaction) {
+      throw new NotFoundError('Transaction not found');
+    }
+
+    if (transaction.from != user._id && transaction.to != user._id) {
+      OwerModel.findOneAsync({
+        type: 'ower',
+        $or: [
+        {
+          _id: transaction.from
+        },
+        {
+          _id: transaction.to
+        }]
+      })
+      .then(function(ower) {
+        if (!ower) {
+          throw new ForbiddenError('Not authorized to access that transaction');
+        }
+
+        return transaction;
+      });
+    }
+
+    return transaction;
+  })
+  .then(function(transaction) {
+    res.json(transaction);
+  })
+  .catch(NotFoundError, error.notFoundHandler(res))
+  .catch(error.serverHandler(res));
 };
 
 exports.update = function(req, res) {
