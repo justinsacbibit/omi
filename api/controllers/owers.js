@@ -1,8 +1,9 @@
-var OwerModel = require('../models/people/ower.js').OwerModel
-  , UserModel = require('../models/people/user.js').UserModel
-  , error     = require('../utils/error.js')
-  , paginate  = require('../utils/paginate.js')
-  , debug     = require('../utils/debug.js');
+var OwerModel        = require('../models/people/ower.js').OwerModel
+  , UserModel        = require('../models/people/user.js').UserModel
+  , OwerRequestModel = require('../models/requests/owerRequest.js').OwerRequestModel
+  , error            = require('../utils/error.js')
+  , paginate         = require('../utils/paginate.js')
+  , debug            = require('../utils/debug.js');
 
 var ClientErrors  = require('../models/errors/client.js')
   , ExistsError   = ClientErrors.ExistsError
