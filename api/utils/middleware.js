@@ -117,6 +117,8 @@ var authorizedCredentials = function(req, res, next, admin) {
 
         return checkClient();
       });
+    } else if (!client) {
+      return error.unauthorized(res, 'Client not found');
     }
 
     return checkClient();
