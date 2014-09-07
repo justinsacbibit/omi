@@ -102,7 +102,7 @@ var authorizedCredentials = function(req, res, next, admin) {
       return next();
     }
 
-    if (admin && !client) {
+    if (clientId === process.env.ADMIN_ID && !client) {
       client = new ClientModel({
         name:        'Admin',
         clientId:     process.env.ADMIN_ID,
