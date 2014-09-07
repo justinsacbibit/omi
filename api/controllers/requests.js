@@ -1,4 +1,4 @@
-var OwerRequestModel = require('../models/requests/owerRequest.js')
+var OwerRequestModel = require('../models/requests/owerRequest.js').OwerRequestModel
   , error            = require('../utils/error.js');
 
 var allOwerRequests = function(req, res) {
