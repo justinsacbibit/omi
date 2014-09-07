@@ -2,10 +2,14 @@ var OwerRequestModel = require('../models/requests/owerRequest.js')
   , error            = require('../utils/error.js');
 
 var allOwerRequests = function(req, res) {
-  var facebookId = req.user.facebookId
-    , type       = req.query.type;
+  var type = req.query.type;
+  var facebookId;
 
-  if (type) {
+  if (req.user && req.user.facebookId) {
+    facebookId = req.user.facebookId;
+  }
+
+  if (type && facebookId) {
     if (type === 'received') {
       conditions.to = facebookId;
     } else if (type === 'sent') {
