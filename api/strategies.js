@@ -1,7 +1,7 @@
 var BearerStrategy         = require('passport-http-bearer').Strategy
-  , UserModel              = require('./model/people/user').UserModel
-  , ClientModel            = require('./model/auth/client.js').ClientModel
-  , AccessTokenModel       = require('./model/auth/accessToken.js').AccessTokenModel;
+  , UserModel              = require('./models/people/user').UserModel
+  , ClientModel            = require('./models/auth/client.js').ClientModel
+  , AccessTokenModel       = require('./models/auth/accessToken.js').AccessTokenModel;
 
 var bearerStrategy = new BearerStrategy(function(accessToken, done) {
   AccessTokenModel.findOne({

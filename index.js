@@ -1,7 +1,7 @@
 /**
  * ENVIRONMENT VARIABLES
  * TOKEN_LIFE: Number of seconds before a token expires
- * LOG: Boolean for verbose logging
+ * DEBUG: Boolean for verbose logging
  * APP_TOKEN: Facebook app token
  * APP_ID: Facebook app ID
  * APP_SECRET: Facebook app secret
@@ -18,8 +18,12 @@ var https      = require('https')
   , mongoose   = require('mongoose')
   , passport   = require('passport')
   , nodemailer = require('nodemailer')
+  , Promise    = require('bluebird')
   , path       = require('path')
   , api        = require('./api/app.js');
+
+Promise.longStackTraces();
+Promise.promisifyAll(mongoose);
 
 var port = process.env.PORT || (process.env.SSL ? 443 : 8080);
 

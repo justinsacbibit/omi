@@ -4,15 +4,18 @@
  * 2   = Token expired
  */
 
-var rest         = require('restler')
+var request      = require('request')
+  , Promise      = require('bluebird')
   , crypto       = require('crypto')
-  , FBTokenModel = require('./model/auth/fbToken.js').FBTokenModel
   , querystring  = require('querystring')
-  , debug        = require('./debug.js');
+  , FBTokenModel = require('./models/auth/fbToken.js').FBTokenModel
+  , debug        = require('./utils/debug.js')
+  , error        = require('./utils/error.js')
+  , FBErrors     = require('./models/errors/fb.js')
+  , FBError      = FBErrors.FBError;
 
-var logError = function(functionName, failure, err) {
-  console.log('fb.js: ' + functionName + ': ' + failure + ': err');
-};
+Promise.longStackTraces();
+Promise.promisifyAll(request);
 
 var queryBuilder = function(params) {
   var queryString = '?';
@@ -38,55 +41,46 @@ var appSecretProof = function(fbAccessToken) {
   return appSecretProof;
 };
 
-exports.login = function(fbAccessToken, done) {
+exports.login = function(fbAccessToken) {
   var URL = URLBuilder('/debug_token', {
     'input_token':  fbAccessToken,
     'access_token': process.env.APP_TOKEN
   });
 
-  rest.get(URL).on('complete', function(data) {
-    if (process.env.DEBUG) {
-      console.log('Debug call complete');
-      console.log(data)
-    }
-    if (typeof data === Error) {
-      return done(data);
-    }
+  var facebookId, scopes;
 
-    if (data['error']) {
-      return done(null, false, {
-        message: data['error']['message']
-      });
+  return request.getAsync(URL)
+  .then(function(response) {
+    var data = JSON.parse(response[1]);
+    debug.log(data);
+
+    var err = data.error || (data.data && data.data.error);
+    if (err) {
+      throw new FBError(err.message);
     }
 
-    data = data['data'];
+    data = data.data;
 
-    if (!data['user_id']) {
-      return done(null, false, {
-        message: 'Missing user_id in FB responses'
-      });
+    if (!data.user_id) {
+      throw new FBError('Facebook did not return user_id in response');
     }
 
-    var facebookId = parseInt(data['user_id'])
-      , app_id     = data['app_id']
-      , scopes     = data['scopes'];
+    var app_id = data.app_id
+    facebookId = parseInt(data.user_id);
+    scopes     = data.scopes;
 
     if (app_id !== process.env.APP_ID) {
       debug.log('Wrong app ID');
-      debug.log(data);
+      debug.log('Data: ' + data);
 
-      return done(null, false, {
-        message: 'App ID does not match'
-      });
+      throw new FBError('Facebook app ID does not match');
     }
 
     if (isNaN(facebookId)) {
-      debug.log('Facebook ID has wrong type');
-      debug.log(data);
+      debug.log('Facebook ID has the wrong type');
+      debug.log('Data: ' + data);
 
-      return done(null, false, {
-        message: 'User ID not returned in response'
-      });
+      throw new FBError('Facebook returned ID that is not a number');
     }
 
     URL = URLBuilder('/oauth/access_token', {
@@ -96,69 +90,51 @@ exports.login = function(fbAccessToken, done) {
       'fb_exchange_token': fbAccessToken
     });
 
-    debug.log(process.env.APP_SECRET);
+    return request.getAsync(URL);
+  })
+  .then(function(response) {
+    var data = response[1];
+    debug.log(data);
 
-    rest.get(URL).on('complete', function(data) {
-      debug.log(data);
+    if (data.error) {
+      throw new FBError('Facebook returned error in response');
+    }
 
-      if (typeof data === Error) {
-        return done(data);
-      }
+    data = querystring.parse(data);
 
-      if (data['error']) {
-        return done(null, false, {
-          message: data['error']['message']
-        });
-      }
+    var longLivedFbAccessToken = data.access_token
+      , expires                = Date.now() + parseInt(data.expires);
 
-      data = querystring.parse(data);
-
-      var longLivedFbAccessToken = data['access_token']
-        , expires                = Date.now() + parseInt(data['expires']);
-
-      var fbToken = new FBTokenModel({
-        facebookId: facebookId,
-        token:      longLivedFbAccessToken,
-        scopes:     scopes,
-        expires:    expires
-      });
-
-      return done(null, fbToken);
+    var fbToken = new FBTokenModel({
+      facebookId: facebookId,
+      token:      longLivedFbAccessToken,
+      scopes:     scopes,
+      expires:    expires
     });
+
+    return fbToken;
   });
 };
 
-exports.name = function(fbAccessToken, done) {
+exports.name = function(fbAccessToken) {
   URL = URLBuilder('/me', {
     'access_token':    fbAccessToken,
     'appsecret_proof': appSecretProof(fbAccessToken)
   });
 
-  rest.get(URL).on('complete', function(data) {
-    debug.log(data);
+  return request.getAsync(URL)
+  .then(function(response) {
+    console.log(JSON.parse(response[0].toJSON().body).id)
+    var data = JSON.parse(response[0].toJSON().body);
+    debug.log('Data for /me response: ' + data);
 
-    if (typeof data === Error) {
-      return done(data);
+    var err = data.error || (data.data && data.data.error);
+    if (err) {
+      throw new FBError(err.message);
     }
 
-    if (data['error']) {
-      return done(null, false, {
-        message: data['error']['message']
-      });
-    }
-
-    if (!data['last_name']) {
-      console.log('Warning: last name not returned in Facebook response for %d', facebookId);
-    }
-
-    if (!data['first_name']) {
-      return done(null, false, {
-        message: 'First name not returned in response for ' + facebookId
-      });
-    }
-
-    var name = data['first_name'] + ' ' + data['last_name'];
-    return done(null, name);
+    var name = data.first_name + ' ' + data.last_name;
+    return name;
   });
 };
 
@@ -175,37 +151,32 @@ exports.needPermissions = function(fbToken, permission) {
   return fbToken.scopes.indexOf(permission) <= -1;
 }
 
-exports.friends = function(fbToken, done) {
+exports.friends = function(fbToken) {
   URL = URLBuilder('/me/friends', {
     'access_token':    fbToken.token,
     'appsecret_proof': appSecretProof(fbToken.token)
   });
 
-  rest.get(URL).on('complete', function(data) {
-    console.log(data)
-    if (typeof data === Error) {
-      return done(data);
+  return request.getAsync(URL)
+  .then(function(response) {
+    var data = JSON.parse(response[1]);
+    debug.log('Data for /me/friends response: ' + data);
+
+    var err = data.error || data.data.error;
+    if (err) {
+      throw new FBError(err.message);
     }
 
-    if (data['error']) {
-      return done(null, false, false, {
-        message: data['error']['message']
-      });
-    }
-
-    var users      = data['data']
-      , totalCount = data['summary']['total_count'];
+    var users      = data.data
+      , totalCount = data.summary.total_count;
 
     if (!users) {
-      return done(null, false, false, {
-        message: 'No data provided in response'
-      });
+      throw new FBError('Facebook provided empty friend response');
     }
 
-    if (!totalCount) {
-      console.log('Total users not provided in response');
-    }
-
-    return done(null, users, totalCount);
+    return {
+      users:      users,
+      totalCount: totalCount
+    };
   });
 };
