@@ -2,7 +2,8 @@ var OwerRequestModel = require('../models/requests/owerRequest.js')
   , error            = require('../utils/error.js');
 
 var allOwerRequests = function(req, res) {
-  var type = req.query.type;
+  var type       = req.query.type
+    , conditions = {};
   var facebookId;
 
   if (req.user && req.user.facebookId) {
