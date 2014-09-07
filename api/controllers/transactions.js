@@ -37,7 +37,7 @@ exports.all = function(req, res) {
     ];
   }
 
-  TransactionModel.findAsync(condition)
+  TransactionModel.findAsync(conditions)
   .then(function(transactions) {
     res.json(transactions);
   })
