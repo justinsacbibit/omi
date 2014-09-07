@@ -19,7 +19,6 @@ var User = new Schema({
   },
   facebookId: {
     type:     Number,
-    required: true,
     unique:   true
   },
   type: {
