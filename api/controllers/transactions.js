@@ -65,6 +65,7 @@ var orConditions = function(user, facebookId, conditions) {
 exports.all = function(req, res) {
   var facebookId = req.param('facebook_id')
     , user       = req.user
+    , owerId     = req.query.ower_id
     , offset     = req.query.offset
     , limit      = req.query.limit
     , type       = req.query.type;
@@ -81,9 +82,20 @@ exports.all = function(req, res) {
     conditions.type = type;
   }
 
-  var promise = Promise.delay(0);
+  var promise = Promise.delay(0); // used for admin access since admin doesn't have a user obj
 
-  if (user) {
+  if (owerId && user) {
+    conditions.$or = [
+      {
+        from: user._id,
+        to:   owerId
+      },
+      {
+        from: owerId,
+        to:   user._id
+      }
+    ];
+  } else if (user) {
     promise = orConditions(user, facebookId, conditions);
   }
 
