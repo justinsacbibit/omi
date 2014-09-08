@@ -5,6 +5,11 @@ var notFound = exports.notFound = function(req, res, next) {
   return error.notFound(res, 'Endpoint');
 };
 
+var internalError = exports.internalError = function(err, req, res, next) {
+  res.status(err.status || 500);
+  return error.server(res, err.message);
+};
+
 exports.validFacebookId = function(req, res, next) {
   var facebookId = req.param('facebook_id');
 

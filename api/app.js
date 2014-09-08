@@ -27,4 +27,5 @@ exports.use = function(express, app, mongoose, passport, nodemailer) {
 
   app.use('/api/v1', routes.use(express.Router(), isValidToken, isFbAuthorized));
   app.use(middleware.notFound);
+  app.use(middleware.internalError);
 }

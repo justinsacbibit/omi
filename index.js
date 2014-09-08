@@ -30,6 +30,10 @@ var port = process.env.PORT || (process.env.SSL ? 443 : 8080);
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+app.use(bodyParser.json());
+app.use(bodyParser.json({
+  type: 'text/plain'
+}));
 
 app.use(function checkSSL(req, res, next) {
   var herokuProxyHeader = req.headers['x-forwarded-proto'];
