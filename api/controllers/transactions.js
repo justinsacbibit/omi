@@ -7,16 +7,20 @@ var Promise          = require('bluebird')
   , error            = require('../utils/error.js')
   , paginate         = require('../utils/paginate.js');
 
-var ClientErrors   = require('../models/errors/client.js')
-  , ExistsError    = ClientErrors.ExistsError
-  , NotFoundError  = ClientErrors.NotFoundError
-  , ForbiddenError = ClientErrors.ForbiddenError;
+var ClientErrors    = require('../models/errors/client.js')
+  , ExistsError     = ClientErrors.ExistsError
+  , NotFoundError   = ClientErrors.NotFoundError
+  , ForbiddenError  = ClientErrors.ForbiddenError
+  , BadRequestError = ClientErrors.BadRequestError;
+
+var ServerErrors = require('../models/errors/server.js')
+  , ServerError  = ServerErrors.ServerError;
 
 var changeBalance = function(ower, owerIsReceiving, type, amount) {
   if ((owerIsReceiving && type === 'omi') || (!owerIsReceiving && type === 'payment')) {
-    ower.balance += amount;
+    ower.balance += parseFloat(amount);
   } else {
-    ower.balance -= amount;
+    ower.balance -= parseFloat(amount);
   }
   return ower;
 };
@@ -116,6 +120,10 @@ exports.create = function(req, res) {
       throw new NotFoundError('Ower not found');
     }
 
+    if (anOwer.facebookId == user.facebookId) {
+      throw new BadRequestError('Cannot create transaction between self');
+    }
+
     ower = anOwer;
     if (anOwer.counterpart) {
       return OwerModel.findByIdAsync(anOwer.counterpart)
@@ -137,11 +145,11 @@ exports.create = function(req, res) {
     return transaction.saveAsync();
   })
   .then(function(data) {
-    return changeBalance(ower, to == ower._id, type, amount).saveAsync();
+    return changeBalance(ower, String(to) == String(ower._id), type, amount).saveAsync();
   })
   .then(function(data) {
     if (counterpartOwer) {
-      return changeBalance(counterpartOwer, to == counterpartOwer._id, type, amount).saveAsync();
+      return changeBalance(counterpartOwer, String(to) == String(counterpartOwer._id), type, amount).saveAsync();
     }
   })
   .then(function(data) {
@@ -190,16 +198,103 @@ exports.show = function(req, res) {
   .catch(error.serverHandler(res));
 };
 
+var owerForTransaction = function(transaction, user) {
+  if (String(transaction.from) == String(user._id)) {
+    owerId = transaction.to;
+  } else {
+    owerId = transaction.from;
+  }
+
+  return OwerModel.findByIdAsync(owerId);
+};
+
 exports.update = function(req, res) {
-  return error.notImplemented(res);
+  var transactionId = req.param('transaction_id')
+    , user          = req.user
+    , name          = req.body.name
+    , amount        = req.body.amount
+    , note          = req.body.note;
+
+  var difference
+    , owerId
+    , ower
+    , counterpartOwer
+    , transaction
+    , owerIsReceiving;
+
+  TransactionModel.findByIdAsync(transactionId)
+  .then(function(aTransaction) {
+    transaction = aTransaction;
+    if (!transaction) {
+      throw new NotFoundError('Transaction not found');
+    }
+
+    if (!(String(transaction.from) == String(user._id) || String(transaction.to) == String(user._id))) {
+      throw new ForbiddenError('Not authorized to delete this transaction');
+    }
+
+    return owerForTransaction(transaction, user);
+  })
+  .then(function(anOwer) {
+    ower = anOwer;
+    if (!ower) {
+      throw new ServerError('Ower not found');
+    }
+
+    if (ower.counterpart) {
+      return OwerModel.findByIdAsync(ower.counterpart)
+      .then(function(aCounterpartOwer) {
+        counterpartOwer = aCounterpartOwer;
+      });
+    }
+  })
+  .then(function() {
+    if (name) {
+      transaction.name = name;
+    }
+    if (amount) {
+      if (isNaN(amount)) {
+        throw new BadRequestError('Invalid parameter: amount must be a number');
+      }
+      difference = amount - transaction.amount;
+      transaction.amount = amount;
+    }
+    if (note) {
+      transaction.note = note;
+    }
+
+    return transaction.saveAsync();
+  })
+  .then(function(data) {
+    if (difference) {
+      return changeBalance(ower, String(transaction.to) == String(ower._id), transaction.type, difference).saveAsync();
+    }
+  })
+  .then(function(data) {
+    if (difference) {
+      if (counterpartOwer) {
+        return changeBalance(counterpartOwer, String(transaction.to) == String(counterpartOwer._id), transaction.type, difference).saveAsync();
+      }
+    }
+  })
+  .then(function(data) {
+    res.json(transaction);
+  })
+  .catch(NotFoundError, error.notFoundHandler(res))
+  .catch(ForbiddenError, error.forbiddenHandler(res))
+  .catch(BadRequestError, error.badRequestHandler(res))
+  .catch(error.serverHandler(res));
 };
 
 exports.delete = function(req, res) {
   var transactionId = req.param('transaction_id')
     , user          = req.user;
 
+  var ower, counterpartOwer, transaction;
+
   TransactionModel.findByIdAsync(transactionId)
-  .then(function(transaction) {
+  .then(function(aTransaction) {
+    transaction = aTransaction;
     if (!transaction) {
       throw new NotFoundError('Transaction not found');
     }
@@ -208,9 +303,33 @@ exports.delete = function(req, res) {
       throw new ForbiddenError('Not authorized to delete this transaction');
     }
 
-    return transaction.removeAsync();
+    return owerForTransaction(transaction, user);
+  })
+  .then(function(anOwer) {
+    ower = anOwer;
+    if (!ower) {
+      throw new ServerError('Ower not found');
+    }
+
+    if (ower.counterpart) {
+      return OwerModel.findByIdAsync(ower.counterpart)
+      .then(function(aCounterpartOwer) {
+        counterpartOwer = aCounterpartOwer;
+      });
+    }
   })
   .then(function() {
+    return transaction.removeAsync();
+  })
+  .then(function(data) {
+    return changeBalance(ower, String(transaction.to) == String(ower._id), transaction.type, transaction.amount * -1).saveAsync();
+  })
+  .then(function(data) {
+    if (counterpartOwer) {
+      return changeBalance(counterpartOwer, String(transaction.to) == String(counterpartOwer._id), transaction.type, transaction.amount * -1).saveAsync();
+    }
+  })
+  .then(function(data) {
     res.json({
       success: true
     });

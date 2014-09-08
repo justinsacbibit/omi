@@ -15,10 +15,12 @@ var Transaction = new Schema({
     },
     from: {
       type:     Schema.Types.ObjectId,
+      ref:      'Ower',
       required: true
     },
     to: {
       type:     Schema.Types.ObjectId,
+      ref:      'Ower',
       required: true
     },
     created: {

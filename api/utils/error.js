@@ -95,3 +95,7 @@ var conflictHandler = exports.conflictHandler = function(res) {
 var forbiddenHandler = exports.forbiddenHandler = function(res) {
   return errorCallback(res, forbidden);
 };
+
+var badRequestHandler = exports.badRequestHandler = function(res) {
+  return errorCallback(res, badRequest);
+};

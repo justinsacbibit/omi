@@ -298,7 +298,7 @@ exports.delete = function(req, res) {
     });
   })
   .then(function(ower) {
-    // TODO: Remove omis
+    // TODO: Remove transactions and update balances
   })
   .then(function() {
     res.json({
