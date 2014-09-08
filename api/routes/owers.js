@@ -10,8 +10,7 @@ module.exports = function(Router, isFbAuthorized) {
     .put(isFbAuthorized, owers.update)
 
   /**
-   * WIP
-   * Minor: Omis for the tethered ower should be removed?
+   * TODO: Transactions for the tethered ower should be removed, balances updated
    */
     .delete(isFbAuthorized, owers.delete);
 };
