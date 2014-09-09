@@ -1,4 +1,5 @@
 var Promise          = require('bluebird')
+  , _                = require('underscore')
   , TransactionModel = require('../models/money/transaction.js').TransactionModel
   , GroupOmiModel    = require('../models/money/groupOmi.js').GroupOmiModel
   , OmiRequestModel  = require('../models/requests/omiRequest.js').OmiRequestModel
@@ -116,58 +117,125 @@ exports.create = function(req, res) {
     , note       = req.body.note
     , from       = req.body.from
     , to         = req.body.to
-    , type       = req.body.type;
+    , type       = req.body.type
+    , omis       = req.body.omis
+    , array      = []
+    , promises   = []
+    , objects    = []
+    , groupOmi;
 
-  if (from != user._id && to != user._id) {
-    return error.badRequest(res, '"from" or "to" must be own ID');
+  var omiObj = {
+    name:   name,
+    amount: amount,
+    note:   note,
+    from:   from
   }
 
-  var id = from != user._id ? from : to;
+  if (type == 'multiomi' && Object.prototype.toString.call(omis) !== '[object Array]') {
+    return error.badRequest(res, 'Invalid parameter: omis must be an array');
+  } else if (type == 'multiomi') {
+    array = omis;
+    omiObj.omis = [];
+    groupOmi = new GroupOmiModel(omiObj);
+  } else {
+    omiObj.to = to;
+    omiObj.type = type;
+    array.push(omiObj);
+  }
 
-  var ower, counterpartOwer, transaction;
+  for (var i = 0; i < array.length; i++) {
+    var omi = array[i];
 
-  OwerModel.findByIdAsync(id)
-  .then(function(anOwer) {
-    if (!anOwer) {
-      throw new NotFoundError('Ower not found');
+    var name   = omi.name
+      , amount = omi.amount
+      , note   = omi.note
+      , from   = omi.from
+      , to     = omi.to
+      , type   = omi.type;
+
+    if (from != String(user._id) && to != String(user._id)) {
+      return error.badRequest(res, '"from" or "to" must be own ID');
     }
 
-    if (anOwer.facebookId == user.facebookId) {
-      throw new BadRequestError('Cannot create transaction between self');
-    }
+    var id = from != String(user._id) ? from : to;
+    var transaction;
 
-    ower = anOwer;
-    if (anOwer.counterpart) {
-      return OwerModel.findByIdAsync(anOwer.counterpart)
-      .then(function(aCounterpartOwer) {
-        counterpartOwer = aCounterpartOwer;
+    var promise = OwerModel.findByIdAsync(id)
+    .then(function(ower) {
+      if (!ower) {
+        throw new NotFoundError('Ower not found');
+      }
+
+      if (ower.facebookId == user.facebookId) {
+        throw new BadRequestError('Cannot create transaction between self');
+      }
+
+      if (ower.counterpart) {
+        return OwerModel.findByIdAsync(ower.counterpart)
+        .then(function(counterpartOwer) {
+          return [ower, counterpartOwer];
+        });
+      }
+
+      return [ower];
+    })
+    .spread(function(ower, counterpartOwer) {
+      transaction = new TransactionModel({
+        name:     name,
+        amount:   amount,
+        note:     note,
+        from:     from,
+        to:       to,
+        type:     type
       });
-    }
-  })
-  .then(function() {
-    transaction = new TransactionModel({
-      name:   name,
-      amount: amount,
-      note:   note,
-      from:   user._id,
-      to:     to,
-      type:   type
+
+      if (groupOmi) {
+        transaction.groupOmi = groupOmi._id;
+      }
+
+      objects.push(transaction);
+      return transaction.validateAsync()
+      .then(function() {
+        if (groupOmi) {
+          groupOmi.omis.push(transaction._id);
+        }
+
+        changeBalance(ower, String(to) == String(ower._id), type, amount);
+        objects.push(ower);
+        return ower.validateAsync()
+        .then(function() {
+          if (counterpartOwer) {
+            changeBalance(counterpartOwer, String(to) != String(ower._id), type, amount);
+            objects.push(counterpartOwer);
+            return counterpartOwer.validateAsync();
+          }
+        });
+      });
     });
 
-    return transaction.saveAsync();
+    promises.push(promise);
+  }
+
+  if (groupOmi) {
+    objects.push(groupOmi);
+    promises.push(groupOmi.validateAsync());
+  }
+
+  Promise.all(promises)
+  .then(function(results) {
+    return Promise.all(_.map(objects, function(object) {
+      return object.saveAsync();
+    }));
   })
-  .then(function(data) {
-    return changeBalance(ower, String(to) == String(ower._id), type, amount).saveAsync();
-  })
-  .then(function(data) {
-    if (counterpartOwer) {
-      return changeBalance(counterpartOwer, String(to) == String(counterpartOwer._id), type, amount).saveAsync();
+  .then(function() {
+    if (groupOmi) {
+      res.status(201).json(groupOmi.populate());
+    } else {
+      res.status(201).json(transaction.populate());
     }
   })
-  .then(function(data) {
-    res.status(201).json(transaction);
-  })
   .catch(NotFoundError, error.notFoundHandler(res))
+  .catch(BadRequestError, error.badRequestHandler(res))
   .catch(error.serverHandler(res));
 };
 
