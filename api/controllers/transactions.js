@@ -101,7 +101,11 @@ exports.all = function(req, res) {
   }
 
   promise.then(function() {
-    return TransactionModel.findAsync(conditions);
+    return TransactionModel.findAsync(conditions, null, {
+      sort: {
+        created: 'descending'
+      }
+    });
   })
   .then(function(transactions) {
     res.json(transactions);
