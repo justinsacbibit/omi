@@ -31,6 +31,8 @@
     "mocha": "^1.21.4",
     "bluebird": "^2.3.2",
     "subclass-error": "0.0.2",
-    "request": "^2.42.0"
+    "request": "^2.42.0",
+    "chai": "^1.9.1",
+    "chai-as-promised": "^4.1.1"
   }
 }
