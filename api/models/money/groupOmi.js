@@ -15,17 +15,18 @@ var GroupOmi = new Schema({
   },
   from: {
     type:     Schema.Types.ObjectId,
+    ref:      'Ower',
     required: true
   },
   created: {
     type:    Date,
     default: Date.now
   },
-  omis: {
-    type:     [Schema.Types.ObjectId],
-    ref:      'Omi',
+  omis: [{
+    type:     Schema.Types.ObjectId,
+    ref:      'Transaction',
     required: true
-  }
+  }]
 });
 
 var GroupOmiModel = mongoose.model('GroupOmi', GroupOmi);

@@ -126,7 +126,8 @@ exports.create = function(req, res) {
     , array      = []
     , promises   = []
     , objects    = []
-    , groupOmi;
+    , groupOmi
+    , total = 0;
 
   var omiObj = {
     name:   name,
@@ -141,6 +142,7 @@ exports.create = function(req, res) {
     array = omis;
     omiObj.omis = [];
     groupOmi = new GroupOmiModel(omiObj);
+    groupOmi.omis = [];
   } else {
     omiObj.to = to;
     omiObj.type = type;
@@ -148,94 +150,120 @@ exports.create = function(req, res) {
   }
 
   for (var i = 0; i < array.length; i++) {
-    var omi = array[i];
+    (function(index) {
+      var omi = array[i];
 
-    var name   = omi.name
-      , amount = omi.amount
-      , note   = omi.note
-      , from   = omi.from
-      , to     = omi.to
-      , type   = omi.type;
-
-    if (from != String(user._id) && to != String(user._id)) {
-      return error.badRequest(res, '"from" or "to" must be own ID');
-    }
-
-    var id = from != String(user._id) ? from : to;
-    var transaction;
-
-    var promise = OwerModel.findByIdAsync(id)
-    .then(function(ower) {
-      if (!ower) {
-        throw new NotFoundError('Ower not found');
-      }
-
-      if (ower.facebookId == user.facebookId) {
-        throw new BadRequestError('Cannot create transaction between self');
-      }
-
-      if (ower.counterpart) {
-        return OwerModel.findByIdAsync(ower.counterpart)
-        .then(function(counterpartOwer) {
-          return [ower, counterpartOwer];
-        });
-      }
-
-      return [ower];
-    })
-    .spread(function(ower, counterpartOwer) {
-      transaction = new TransactionModel({
-        name:     name,
-        amount:   amount,
-        note:     note,
-        from:     from,
-        to:       to,
-        type:     type
-      });
+      var name   = omi.name
+        , amount = omi.amount
+        , note   = omi.note
+        , from   = omi.from
+        , to     = omi.to
+        , type   = omi.type;
 
       if (groupOmi) {
-        transaction.groupOmi = groupOmi._id;
+        name = groupOmi.name;
+        from = groupOmi.from;
+        type = 'omi';
+        total += amount;
       }
 
-      objects.push(transaction);
-      return transaction.validateAsync()
-      .then(function() {
-        if (groupOmi) {
-          groupOmi.omis.push(transaction._id);
+      if (from != String(user._id) && to != String(user._id)) {
+        return error.badRequest(res, '"from" or "to" must be own ID');
+      }
+
+      var id = from != String(user._id) ? from : to;
+      var transaction;
+
+      var promise = OwerModel.findByIdAsync(id)
+      .then(function(ower) {
+        if (!ower) {
+          throw new NotFoundError('Ower not found');
         }
 
-        changeBalance(ower, String(to) == String(ower._id), type, amount);
-        objects.push(ower);
-        return ower.validateAsync()
+        if (ower.facebookId == user.facebookId) {
+          throw new BadRequestError('Cannot create transaction between self');
+        }
+
+        if (ower.counterpart) {
+          return OwerModel.findByIdAsync(ower.counterpart)
+          .then(function(counterpartOwer) {
+            return [ower, counterpartOwer];
+          });
+        }
+
+        return [ower];
+      })
+      .spread(function(ower, counterpartOwer) {
+        transaction = new TransactionModel({
+          name:     name,
+          amount:   amount,
+          note:     note,
+          from:     from,
+          to:       to,
+          type:     type
+        });
+        console.log(transaction)
+
+        if (groupOmi) {
+          transaction.groupOmi = groupOmi._id;
+        }
+
+        objects.push(transaction);
+        return transaction.validateAsync()
         .then(function() {
-          if (counterpartOwer) {
-            changeBalance(counterpartOwer, String(to) != String(ower._id), type, amount);
-            objects.push(counterpartOwer);
-            return counterpartOwer.validateAsync();
+          if (groupOmi) {
+            groupOmi.omis.push(transaction._id);
+            console.log(groupOmi)
           }
+
+          changeBalance(ower, String(to) == String(ower._id), type, amount);
+          objects.push(ower);
+          return ower.validateAsync()
+          .then(function() {
+            if (counterpartOwer) {
+              changeBalance(counterpartOwer, String(to) != String(ower._id), type, amount);
+              objects.push(counterpartOwer);
+              return counterpartOwer.validateAsync();
+            }
+          });
         });
       });
-    });
 
-    promises.push(promise);
+      promises.push(promise);
+    })(i);
   }
 
   if (groupOmi) {
     objects.push(groupOmi);
-    promises.push(groupOmi.validateAsync());
   }
 
   Promise.all(promises)
   .then(function(results) {
+    if (groupOmi) {
+      if (Math.abs(groupOmi.amount - total) > 0.03) {
+        throw new BadRequestError('Multiomi total must be equal to omis added up')
+      } else {
+        return groupOmi.validateAsync();
+      }
+    }
+  })
+  .then(function() {
     return Promise.all(_.map(objects, function(object) {
       return object.saveAsync();
     }));
   })
   .then(function() {
     if (groupOmi) {
-      res.status(201).json(groupOmi.populate());
+      return groupOmi.populateAsync('omis from', 'name amount note from to type facebookId');
     } else {
-      res.status(201).json(transaction.populate());
+      return transaction.populateAsync('from to', 'name facebookId balance');
+    }
+  })
+  .then(function() {
+    if (groupOmi) {
+      res.status(201).json(groupOmi);
+    } else {
+      res.status(201).json(transaction);
     }
   })
   .catch(NotFoundError, error.notFoundHandler(res))
