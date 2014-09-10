@@ -5,9 +5,9 @@ var ClientModel   = require('../models/auth/client.js').ClientModel
   , ExistsError   = ClientErrors.ExistsError;
 
 exports.all = function(req, res) {
-  ClientModel.findAsync()
+  return ClientModel.findAsync()
   .then(function(clients) {
-    res.json(clients);
+    return res.json(clients);
   })
   .catch(error.serverHandler(res));
 };
