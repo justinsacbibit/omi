@@ -1,5 +1,6 @@
 var ClientModel   = require('../models/auth/client.js').ClientModel
   , error         = require('../utils/error.js')
+  , debug         = require('../utils/debug.js')
   , ClientErrors  = require('../models/errors/client.js')
   , NotFoundError = ClientErrors.NotFoundError
   , ExistsError   = ClientErrors.ExistsError;
@@ -13,9 +14,9 @@ exports.all = function(req, res) {
 };
 
 exports.create = function(req, res) {
-  var name =         req.param('name')
-    , clientId =     req.param('id')
-    , clientSecret = req.param('secret');
+  var name =         req.body['name']
+    , clientId =     req.body['id']
+    , clientSecret = req.body['secret'];
 
   ClientModel.findOneAsync({
     clientId: clientId
@@ -26,18 +27,18 @@ exports.create = function(req, res) {
     }
 
     client = new ClientModel({
-      name:         req.body['name'],
-      clientId:     req.body['id'],
-      clientSecret: req.body['secret']
+      name:         name,
+      clientId:     clientId,
+      clientSecret: clientSecret
     });
 
     return client.saveAsync();
   })
-  .then(function(client) {
-    console.log(client)
+  .spread(function(client, numAffected) {
+    debug.log(client)
     res.status(201).json({
-      name:     client.name,
-      clientId: client.clientId
+      name:      client.name,
+      client_id: client.clientId
     });
   })
   .catch(ExistsError, error.existsHandler(res))

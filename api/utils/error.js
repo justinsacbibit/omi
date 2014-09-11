@@ -1,3 +1,5 @@
+var debug = require('./debug.js');
+
 var errorJSON = function(message, code) {
   var JSON = {
     error: {
@@ -59,16 +61,20 @@ var gateway = exports.gateway = function(res, message) {
 
 var log = exports.log = function(param) {
   if (typeof param == Error) {
-    console.log(param.stack);
+    debug.log(param.stack);
   } else {
-    console.trace(param);
+    debug.trace(param);
   }
 };
 
 var errorCallback = function(res, func) {
   return function(err) {
     log(err);
-    func(res, err.message);
+    if (err.name === 'ValidationError') {
+      badRequest(res, err.message);
+    } else {
+      func(res, err.message);
+    }
   };
 };
 
