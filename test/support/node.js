@@ -5,6 +5,9 @@ var chai           = require('chai')
   , mongoose       = require('mongoose');
 
 process.env.NODE_ENV = 'test';
+if (process.env.CI) {
+  process.env.MONGO_TEST = 'mongodb://travisci:github123integration@kahana.mongohq.com:10095/omi-ci';
+}
 
 Promise.promisifyAll(mongoose);
 
