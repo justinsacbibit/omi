@@ -4,6 +4,7 @@ var _ = require('underscore')
   , controller = require('./support/controller.js')
   , UserModel = require('../api/models/people/user.js').UserModel
   , OwerModel = require('../api/models/people/ower.js').OwerModel
+  , OwerRequestModel = require('../api/models/requests/owerRequest.js').OwerRequestModel
   , owers = require('../api/controllers/owers.js');
 
 var newUser = function newUser(obj) {
@@ -73,6 +74,22 @@ var save = function save(arr, cb, idx) {
   });
 };
 
+var checkOwer = function checkOwer(ower, name, facebookId, tetheredTo) {
+  ower.should.have.property('name', name);
+  ower.should.have.property('facebookId', facebookId);
+  ower.should.have.property('tetheredTo', tetheredTo);
+  ower.should.have.property('type', 'ower');
+  ower.should.have.property('balance', 0);
+};
+
+var checkOwer1 = function checkOwer1(ower) {
+  checkOwer(ower, user2.name, user2.facebookId, user1.facebookId);
+};
+
+var checkOwer2 = function checkOwer2(ower) {
+  checkOwer(ower, user1.name, user1.facebookId, user2.facebookId);
+};
+
 describe('owers', function() {
   beforeEach(function(done) {
     OwerModel.find().remove(function(err) {
@@ -80,8 +97,14 @@ describe('owers', function() {
         return done(err);
       }
 
-      return save(people(), function(err) {
-        done(err);
+      OwerRequestModel.find().remove(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        return save(people(), function(err) {
+          done(err);
+        });
       });
     });
   });
@@ -185,6 +208,70 @@ describe('owers', function() {
       });
       owers.create(mockRequest, mockRes(function(ower) {
         owers.create(mockRequest, mockErrorRes(409, done));
+      }, 201));
+    });
+
+    it('returns an error when adding a non-existing Facebook ower', function(done) {
+      owers.create(mockReq(user1.facebookId, {
+        facebook_id: 9183756371
+      }), mockErrorRes(404, done));
+    });
+
+    it('creates a Facebook ower without a counterpart', function(done) {
+      owers.create(mockReq(user1.facebookId, {
+        facebook_id: user2.facebookId
+      }), mockRes(function(ower) {
+        checkOwer1(ower);
+        done();
+      }, 201));
+    });
+
+    it('sends an ower request when creating a Facebook ower without a counterpart', function(done) {
+      owers.create(mockReq(user1.facebookId, {
+        facebook_id: user2.facebookId
+      }), mockRes(function(ower) {
+        OwerRequestModel.findOne({
+          from: user1.facebookId,
+          to: user2.facebookId
+        }, function(err, owerRequest) {
+          owerRequest.should.exist;
+          done(err);
+        });
+      }, 201));
+    });
+
+    it('creates a Facebook ower with a counterpart ID', function(done) {
+      owers.create(mockReq(user1.facebookId, {
+        facebook_id: user2.facebookId
+      }), mockRes(function(ower1) {
+        owers.create(mockReq(user2.facebookId, {
+          facebook_id: user1.facebookId
+        }), mockRes(function(ower2) {
+          checkOwer2(ower2);
+          ower2.counterpart.should.exist;
+          ower2.counterpart.toString().should.equal(ower1._id.toString());
+          done();
+        }, 201));
+      }, 201));
+    });
+
+    it('updates the counterpart with a counterpart ID', function(done) {
+      owers.create(mockReq(user1.facebookId, {
+        facebook_id: user2.facebookId
+      }), mockRes(function(ower1) {
+        owers.create(mockReq(user2.facebookId, {
+          facebook_id: user1.facebookId
+        }), mockRes(function(ower2) {
+          OwerModel.findOne({
+            facebookId: user2.facebookId,
+            tetheredTo: user1.facebookId
+          }, function(err, ower) {
+            checkOwer1(ower);
+            ower.counterpart.should.exist;
+            ower.counterpart.toString().should.equal(ower2._id.toString());
+            done(err);
+          });
+        }, 201));
       }, 201));
     });
   });
