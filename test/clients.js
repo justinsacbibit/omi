@@ -1,7 +1,6 @@
-var mongoose    = require('mongoose')
-  , dbURI       = process.env.MONGO_TEST || 'mongodb://localhost:27018'
+var db = require('./support/db.js')
   , ClientModel = require('../api/models/auth/client.js').ClientModel
-  , clients     = require('../api/controllers/clients.js');
+  , clients = require('../api/controllers/clients.js');
 
 var saveClient = function(name, clientId, clientSecret, done) {
   var client = new ClientModel({
@@ -44,7 +43,6 @@ var mockRes = function(cb, expectedCode) {
   var obj = {
     json:   cb,
     status: function(code) {
-      // console.trace(expectedCode)
       code.should.equal(expectedCode);
       return obj;
     }
@@ -86,11 +84,9 @@ var mockParamReq = function(id) {
 
 describe('clients', function() {
   beforeEach(function (done) {
-    mongoose.connect(dbURI, function() {
-      mongoose.connection.db.dropDatabase(function(err) {
-        saveClient1(function(err) {
-          done(err);
-        });
+    db.clear(function() {
+      saveClient1(function(err) {
+        done(err);
       });
     });
   });
