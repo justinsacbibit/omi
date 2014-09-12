@@ -4,12 +4,12 @@ module.exports = function(req, res, conditions) {
   var offset = req.query.offset
     , limit  = req.query.limit;
 
-  if (offset < 0) {
+  if (offset != null && offset < 0) {
     error.badRequest(res, 'Offset parameter must be greater than or equal to zero');
     return false;
   }
 
-  if (limit <= 0) {
+  if (limit != null && limit <= 0) {
     error.badRequest(res, 'Limit parameter must be greater than zero');
     return false;
   } else if (limit > 100) {

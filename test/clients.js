@@ -1,4 +1,6 @@
 var db = require('./support/db.js')
+  , error = require('./support/error.js')
+  , controller = require('./support/controller.js')
   , ClientModel = require('../api/models/auth/client.js').ClientModel
   , clients = require('../api/controllers/clients.js');
 
@@ -34,29 +36,8 @@ var checkClients = function(clients) {
   clients.should.all.have.property('clientSecret');
 };
 
-var checkErrorResponse = function(err) {
-  err.should.have.deep.property('error.message');
-  err.should.have.deep.property('error.code');
-};
-
-var mockRes = function(cb, expectedCode) {
-  var obj = {
-    json:   cb,
-    status: function(code) {
-      code.should.equal(expectedCode);
-      return obj;
-    }
-  };
-
-  return obj;
-};
-
-var mockErrorRes = function(expectedCode, done) {
-  return mockRes(function(err) {
-    checkErrorResponse(err);
-    done();
-  }, expectedCode);
-};
+var mockRes = controller.mockRes;
+var mockErrorRes = error.mockRes;
 
 var mockBodyReq = function(name, id, secret) {
   var obj = {
@@ -83,7 +64,7 @@ var mockParamReq = function(id) {
 };
 
 describe('clients', function() {
-  beforeEach(function (done) {
+  beforeEach(function(done) {
     db.clear(function() {
       saveClient1(function(err) {
         done(err);

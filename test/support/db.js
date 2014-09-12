@@ -3,8 +3,8 @@ var mongoose    = require('mongoose')
 
 var clear = exports.clear = function(done) {
   mongoose.connect(dbURI, function() {
-    mongoose.connection.db.dropDatabase(function() {
-      done();
+    mongoose.connection.db.dropDatabase(function(err) {
+      done(err);
     });
   });
 };
