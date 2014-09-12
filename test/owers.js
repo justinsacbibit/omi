@@ -274,5 +274,23 @@ describe('owers', function() {
         }, 201));
       }, 201));
     });
+
+    it('removes the pending ower request', function(done) {
+      owers.create(mockReq(user1.facebookId, {
+        facebook_id: user2.facebookId
+      }), mockRes(function(ower1) {
+        owers.create(mockReq(user2.facebookId, {
+          facebook_id: user1.facebookId
+        }), mockRes(function(ower2) {
+          OwerRequestModel.findOne({
+            from: user1.facebookId,
+            to: user2.facebookId
+          }, function(err, owerRequest) {
+            expect(owerRequest).to.not.exist;
+            done(err);
+          });
+        }, 201));
+      }, 201));
+    });
   });
 });

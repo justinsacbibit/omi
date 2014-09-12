@@ -106,8 +106,8 @@ exports.create = function(req, res) {
           existingOwer = ower;
           // if they have, then remove the ower request
           return OwerRequestModel.findOneAndRemoveAsync({
-            to: facebookId,
-            type: 'ower'
+            from: owerFbId,
+            to: facebookId
           });
         }
 
