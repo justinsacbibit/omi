@@ -70,7 +70,7 @@ var log = exports.log = function(param) {
 var errorCallback = function(res, func) {
   return function(err) {
     log(err);
-    if (err.name === 'ValidationError') {
+    if (err && err.name === 'ValidationError') {
       badRequest(res, err.message);
     } else {
       func(res, err.message);
