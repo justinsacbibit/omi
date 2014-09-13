@@ -1,10 +1,8 @@
-var mongoose    = require('mongoose')
-  , dbURI       = process.env.MONGO_TEST || 'mongodb://localhost:27018';
+var mongoose = require('mongoose')
+  , mockgoose = require('mockgoose');
 
-var clear = exports.clear = function(done) {
-  mongoose.connect(dbURI, function() {
-    mongoose.connection.db.dropDatabase(function(err) {
-      done(err);
-    });
-  });
+mockgoose(mongoose);
+
+var clear = exports.clear = function() {
+  mockgoose.reset();
 };

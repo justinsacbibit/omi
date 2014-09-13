@@ -36,6 +36,7 @@
     "mocha": "^1.21.4",
     "mongodb": "^1.4.10",
     "mocha-mongoose": "^1.0.1",
-    "chai-things": "^0.2.0"
+    "chai-things": "^0.2.0",
+    "mockgoose": "^1.10.2"
   }
 }

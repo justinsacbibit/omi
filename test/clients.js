@@ -65,10 +65,9 @@ var mockParamReq = function(id) {
 
 describe('clients', function() {
   beforeEach(function(done) {
-    db.clear(function() {
-      saveClient1(function(err) {
-        done(err);
-      });
+    db.clear();
+    saveClient1(function(err) {
+      done(err);
     });
   });
 

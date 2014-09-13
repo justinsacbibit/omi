@@ -92,20 +92,9 @@ var checkOwer2 = function checkOwer2(ower) {
 
 describe('owers', function() {
   beforeEach(function(done) {
-    OwerModel.find().remove(function(err) {
-      if (err) {
-        return done(err);
-      }
-
-      OwerRequestModel.find().remove(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        return save(people(), function(err) {
-          done(err);
-        });
-      });
+    db.clear();
+    save(people(), function(err) {
+      return done(err);
     });
   });
 
