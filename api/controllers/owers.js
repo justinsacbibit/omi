@@ -191,6 +191,8 @@ exports.update = function(req, res) {
     return error.badRequest(res, 'Invalid parameters: Must only send name or facebook_id');
   } else if (!newName && !newFbId) {
     return error.missingParam(res, 'name or facebook_id');
+  } else if (newFbId == facebookId) {
+    return error.badRequest(res, 'Invalid parameters: facebook_id must not be own Facebook ID');
   }
 
   OwerModel.findOneAsync({
@@ -232,11 +234,12 @@ exports.update = function(req, res) {
         throw new NotFoundError('User not found');
       }
 
-      ower.facebookId = facebookId;
+      ower.facebookId = newFbId;
+      ower.name = user.name;
 
       return OwerModel.findOneAsync({
-        tetheredTo: facebookId,
-        facebookId: newFbId,
+        tetheredTo: newFbId,
+        facebookId: facebookId,
         type:       'ower'
       })
     })
@@ -263,8 +266,8 @@ exports.update = function(req, res) {
       return counterpartOwer.saveAsync()
       .then(function(counterpartOwer) {
         return OwerRequestModel.findOneAndRemoveAsync({
-          to:   facebookId,
-          type: 'ower'
+          from: facebookId,
+          to: newFbId
         });
       })
       .then(function(owerRequest) {
