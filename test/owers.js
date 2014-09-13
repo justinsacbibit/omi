@@ -32,6 +32,8 @@ var initModels = function initModels(models, model) {
 var people = function people() {
   var users = initModels([user1, user2], UserModel);
   var owers = initModels([ower1, fbOwer1], OwerModel);
+  ower1._id = owers[0]._id;
+  fbOwer1._id = owers[1]._id;
   return users.concat(owers);
 };
 
@@ -109,6 +111,17 @@ describe('owers', function() {
       });
     });
 
+    describe('errors', function() {
+      it('returns an error with invalid pagination parameters', function(done) {
+        owers.all(mockReq({
+          limit: 0
+        }), mockRes(function(err) {
+          error.checkResponse(err);
+          done();
+        }, 400));
+      });
+    });
+
     it('does not return users', function(done) {
       owers.all(mockReq({}), mockRes(function(owers) {
         owers.should.all.not.have.property('type', 'user');
@@ -140,15 +153,6 @@ describe('owers', function() {
       }));
     });
 
-    it('returns an error with invalid pagination parameters', function(done) {
-      owers.all(mockReq({
-        limit: 0
-      }), mockRes(function(err) {
-        error.checkResponse(err);
-        done();
-      }, 400));
-    });
-
     it('can filter by Facebook ID', function(done) {
       owers.all(mockReq({
         facebook_id: fbOwer1.facebookId
@@ -175,22 +179,40 @@ describe('owers', function() {
       });
     });
 
-    it('returns an error if the request contains a name and Facebook ID at the same time', function(done) {
-      owers.create(mockReq({
-        name: 'name',
-        facebook_id: 'facebookId'
-      }), mockErrorRes(400, done));
-    });
+    describe('errors', function() {
+      it('returns an error if the request contains a name and Facebook ID at the same time', function(done) {
+        owers.create(mockReq({
+          name: 'name',
+          facebook_id: 'facebookId'
+        }), mockErrorRes(400, done));
+      });
 
-    it('returns an error if the ower is self', function(done) {
-      var facebookId = 12345;
-      owers.create(mockReq({
-        facebook_id: facebookId
-      }, facebookId), mockErrorRes(400, done));
-    });
+      it('returns an error if the ower is self', function(done) {
+        var facebookId = 12345;
+        owers.create(mockReq({
+          facebook_id: facebookId
+        }, facebookId), mockErrorRes(400, done));
+      });
 
-    it('returns an error if no parameters are provided', function(done) {
-      owers.create(mockReq({}), mockErrorRes(400, done));
+      it('returns an error if no parameters are provided', function(done) {
+        owers.create(mockReq({}), mockErrorRes(400, done));
+      });
+
+      it('returns an error for an existing ower', function(done) {
+        var name = 'Non-Facebook Ower';
+        var mockRequest = mockReq({
+          name: name
+        }, user1.facebookId);
+        owers.create(mockRequest, mockRes(function(ower) {
+          owers.create(mockRequest, mockErrorRes(409, done));
+        }, 201));
+      });
+
+      it('returns an error when adding a non-existing Facebook ower', function(done) {
+        owers.create(mockReq({
+          facebook_id: 9183756371
+        }, user1.facebookId), mockErrorRes(404, done));
+      });
     });
 
     it('creates a non-Facebook ower', function(done) {
@@ -204,22 +226,6 @@ describe('owers', function() {
         ower.should.have.property('balance', 0);
         done();
       }, 201));
-    });
-
-    it('returns an error for an existing ower', function(done) {
-      var name = 'Non-Facebook Ower';
-      var mockRequest = mockReq({
-        name: name
-      }, user1.facebookId);
-      owers.create(mockRequest, mockRes(function(ower) {
-        owers.create(mockRequest, mockErrorRes(409, done));
-      }, 201));
-    });
-
-    it('returns an error when adding a non-existing Facebook ower', function(done) {
-      owers.create(mockReq({
-        facebook_id: 9183756371
-      }, user1.facebookId), mockErrorRes(404, done));
     });
 
     it('creates a Facebook ower without a counterpart', function(done) {
@@ -305,24 +311,80 @@ describe('owers', function() {
       });
     });
 
-    it('returns an error for an invalid ower ID', function(done) {
-      owers.show(mockReq({}, user1.facebookId, 'someowerid'), mockErrorRes(400, done));
-    });
+    describe('errors', function() {
+      it('returns an error for an invalid ower ID', function(done) {
+        owers.show(mockReq({}, user1.facebookId, 'someowerid'), mockErrorRes(400, done));
+      });
 
-    it('returns an error for a non-existent ower ID', function(done) {
-      owers.show(mockReq({}, user1.facebookId, '54135860e3617eeb2ed0e5a4'), mockErrorRes(404, done));
+      it('returns an error for a non-existent ower ID', function(done) {
+        owers.show(mockReq({}, user1.facebookId, '54135860e3617eeb2ed0e5a4'), mockErrorRes(404, done));
+      });
     });
 
     it('retrieves the correct ower', function(done) {
-      OwerModel.findOne({
-        name: ower1.name,
-        tetheredTo: user1.facebookId
-      }, function(err, ower) {
-        owers.show(mockReq({}, user1.facebookId, ower._id), mockRes(function(ower) {
-          checkOwer1(ower);
-          done();
-        }));
+      owers.show(mockReq({}, user1.facebookId, ower1._id), mockRes(function(ower) {
+        checkOwer1(ower);
+        done();
+      }));
+    });
+  });
+
+  describe('#update()', function() {
+    beforeEach(function(done) {
+      save(people(), function(err) {
+        done(err);
       });
     });
+
+    describe('errors', function() {
+      it('returns an error if the request contains a name and Facebook ID at the same time', function(done) {
+        owers.update(mockReq({
+          name: 'Joe',
+          facebook_id: '192939'
+        }, user1.facebookId, ower1._id), mockErrorRes(400, done));
+      });
+
+      it('returns an error if the request contains neither a name or Facebook ID', function(done) {
+        owers.update(mockReq({}, user1.facebookId, ower1._id), mockErrorRes(400, done));
+      });
+
+      it('returns an error if the ower does not exist', function(done) {
+        owers.update(mockReq({
+          name: 'Joe'
+        }, user1.facebookId, '54135860e3617eeb2ed0e5a4'), mockErrorRes(404, done));
+      });
+
+      it('returns an error if user does not own the ower', function(done) {
+        owers.update(mockReq({
+          name: 'Joe'
+        }, user2.facebookId, ower1._id), mockErrorRes(403, done));
+      });
+
+      it('returns an error if trying to change an existing Facebook ID', function(done) {
+        owers.update(mockReq({
+          facebook_id: 123
+        }, user2.facebookId, fbOwer1._id), mockErrorRes(409, done));
+      });
+
+      it('returns an error if trying to change name for Facebook ower', function(done) {
+        owers.update(mockReq({
+          name: 'Joe'
+        }, user2.facebookId, fbOwer1._id), mockErrorRes(409, done));
+      });
+
+      it('returns an error if trying to update an ower name to its current name', function(done) {
+        owers.update(mockReq({
+          name: ower1.name
+        }, user1.facebookId, ower1._id), mockErrorRes(409, done));
+      });
+
+      it('returns an error is trying to update with a Facebook ID that does not exist', function(done) {
+        owers.update(mockReq({
+          facebook_id: 427893432
+        }, user1.facebookId, ower1._id), mockErrorRes(404, done));
+      });
+    });
+
+    
   });
 });

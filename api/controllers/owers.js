@@ -8,7 +8,8 @@ var OwerModel        = require('../models/people/ower.js').OwerModel
 var ClientErrors  = require('../models/errors/client.js')
   , ExistsError   = ClientErrors.ExistsError
   , NotFoundError = ClientErrors.NotFoundError
-  , ConflictError = ClientErrors.ConflictError;
+  , ConflictError = ClientErrors.ConflictError
+  , ForbiddenError = ClientErrors.ForbiddenError;
 
 exports.all = function(req, res) {
   var facebookId = req.param('facebook_id')
@@ -181,7 +182,8 @@ exports.show = function(req, res) {
 };
 
 exports.update = function(req, res) {
-  var owerId  = req.param('ower_id')
+  var facebookId = req.user.facebookId
+    , owerId = req.param('ower_id')
     , newName = req.body.name
     , newFbId = req.body.facebook_id;
 
@@ -198,6 +200,10 @@ exports.update = function(req, res) {
   .then(function(ower) {
     if (!ower) {
       throw new NotFoundError('Ower not found');
+    }
+
+    if (ower.tetheredTo !== facebookId) {
+      throw new ForbiddenError('Unauthorized to edit that ower');
     }
 
     if (ower.facebookId) {
@@ -266,9 +272,10 @@ exports.update = function(req, res) {
       });
     });
   })
-  .then(function(ower) {
+  .spread(function(ower, numAffected) {
     res.json(ower);
   })
+  .catch(ForbiddenError, error.forbiddenHandler(res))
   .catch(NotFoundError, error.notFoundHandler(res))
   .catch(ConflictError, error.conflictHandler(res))
   .catch(error.serverHandler(res));

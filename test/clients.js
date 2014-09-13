@@ -104,6 +104,24 @@ describe('clients', function() {
   });
 
   describe('#create()', function() {
+    describe('errors', function() {
+      it('rejects an empty body', function(done) {
+        clients.create(mockBodyReq(), mockErrorRes(400, done));
+      });
+
+      it('requires a name', function(done) {
+        var mockRequest = mockBodyReq(null, id2, secret2);
+
+        clients.create(mockRequest, mockErrorRes(400, done));
+      });
+
+      it('requires an id and secret', function(done) {
+        var mockRequest = mockBodyReq(name2);
+
+        clients.create(mockRequest, mockErrorRes(400, done));
+      });
+    });
+
     it('should create a client', function(done) {
       var mockRequest = mockBodyReq(name2, id2, secret2);
 
@@ -113,25 +131,15 @@ describe('clients', function() {
         done();
       }, 201));
     });
-
-    it('rejects an empty body', function(done) {
-      clients.create(mockBodyReq(), mockErrorRes(400, done));
-    });
-
-    it('requires a name', function(done) {
-      var mockRequest = mockBodyReq(null, id2, secret2);
-
-      clients.create(mockRequest, mockErrorRes(400, done));
-    });
-
-    it('requires an id and secret', function(done) {
-      var mockRequest = mockBodyReq(name2);
-
-      clients.create(mockRequest, mockErrorRes(400, done));
-    });
   });
 
   describe('#show()', function() {
+    describe('errors', function() {
+      it('returns an error when invalid id', function(done) {
+        clients.show(mockParamReq(id2), mockErrorRes(404, done));
+      });
+    });
+
     it('retrieves by id', function(done) {
       clients.show(mockParamReq(id1), mockRes(function(client) {
         client.clientId.should.equal(id1);
@@ -139,15 +147,13 @@ describe('clients', function() {
         done();
       }, 200));
     });
-
-    it('returns an error when invalid id', function(done) {
-      clients.show(mockParamReq(id2), mockErrorRes(404, done));
-    });
   });
 
   describe('#delete()', function() {
-    it('returns an error when invalid id', function(done) {
-      clients.delete(mockParamReq(id2), mockErrorRes(404, done));
+    describe('errors', function() {
+      it('returns an error when invalid id', function(done) {
+        clients.delete(mockParamReq(id2), mockErrorRes(404, done));
+      });
     });
 
     it('deletes a client', function(done) {
