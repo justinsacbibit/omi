@@ -3,4 +3,4 @@ omi-node
 
 REST API for omi, using Node.js.
 
-![Tests](https://travis-ci.org/justinsacbibit/omi-node.svg?branch=master)
+[![Build Status](https://travis-ci.org/justinsacbibit/omi-node.svg?branch=master)](https://travis-ci.org/justinsacbibit/omi-node/)
