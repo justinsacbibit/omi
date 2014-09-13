@@ -162,9 +162,13 @@ exports.create = function(req, res) {
 };
 
 exports.show = function(req, res) {
-  var owerId = req.param('ower_id');
+  var owerId = req.param('ower_id')
+    , facebookId = req.param('facebook_id');
 
-  OwerModel.findByIdAsync(owerId)
+  OwerModel.findOneAsync({
+    _id: owerId,
+    tetheredTo: facebookId
+  })
   .then(function(ower) {
     if (!ower || ower.type !== 'ower') {
       throw new NotFoundError('Ower not found');

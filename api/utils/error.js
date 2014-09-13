@@ -71,7 +71,7 @@ var errorCallback = function(res, func) {
   return function(err) {
     log(err);
     // console.log(err);
-    if (err && err.name === 'ValidationError') {
+    if (err && (err.name === 'ValidationError' || err.name === 'CastError')) {
       badRequest(res, err.message);
     } else {
       func(res, err.message);
