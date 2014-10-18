@@ -1,7 +1,7 @@
 {
-	"name": "meanjs",
-	"version": "0.3.2",
-	"description": "Fullstack JavaScript with MongoDB, Express, AngularJS, and Node.js.",
+	"name": "Omi",
+	"version": "0.0.0",
+	"description": "A web application for keeping track of who owes you money.",
 	"dependencies": {
 		"bootstrap": "~3",
 		"angular": "~1.2",
@@ -10,6 +10,6 @@
 		"angular-mocks": "~1.2",
 		"angular-bootstrap": "~0.11.0",
 		"angular-ui-utils": "~0.1.1",
-		"angular-ui-router": "~0.2.10" 
+		"angular-ui-router": "~0.2.10"
 	}
 }

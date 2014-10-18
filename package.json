@@ -1,12 +1,12 @@
 {
-	"name": "meanjs",
-	"description": "Full-Stack JavaScript with MongoDB, Express, AngularJS, and Node.js.",
-	"version": "0.3.3",
+	"name": "Omi",
+	"description": "A web application for keeping track of who owes you money.",
+	"version": "0.0.0",
 	"private": false,
-	"author": "https://github.com/meanjs/mean/graphs/contributors",
+	"author": "https://github.com/justinsacbibit/omi-node/graphs/contributors",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/meanjs/mean.git"
+		"url": "https://github.com/justinsacbibit/omi-node.git"
 	},
 	"engines": {
 		"node": "0.10.x",
