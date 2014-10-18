@@ -3,7 +3,7 @@
 /**
  * Get unique error field name
  */
-var getUniqueErrorMessage = function(err) {
+var getUniqueErrorMessage = function getUniqueErrorMessage(err) {
 	var output;
 
 	try {
@@ -20,9 +20,9 @@ var getUniqueErrorMessage = function(err) {
 /**
  * Get the error message from error object
  */
-exports.getErrorMessage = function(err) {
+var getErrorMessage = exports.getErrorMessage = function getErrorMessage(err) {
 	var message = '';
-	
+
 	if (err.code) {
 		switch (err.code) {
 			case 11000:
@@ -39,4 +39,20 @@ exports.getErrorMessage = function(err) {
 	}
 
 	return message;
+};
+
+/**
+ * Generic response creator
+ */
+var respond = function respond(res, code, err) {
+	res.status(code).send({
+		message: getErrorMessage(err)
+	});
+};
+
+/**
+ * 400 Bad Request
+ */
+var badRequest = function badRequest(res, err) {
+	respond(res, 400, err);
 };

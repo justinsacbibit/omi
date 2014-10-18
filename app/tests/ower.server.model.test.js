@@ -44,6 +44,22 @@ describe('Ower Model Unit Tests:', function() {
 				done();
 			});
 		});
+
+		it('should error without first name', function(done) {
+			ower.firstName = undefined;
+			return ower.save(function(err) {
+				should.exist(err);
+				done();
+			});
+		});
+
+		it('should error without a tethered user', function(done) {
+			ower.tetheredTo = undefined;
+			return ower.save(function(err) {
+				should.exist(err);
+				done();
+			});
+		});
 	});
 
 	afterEach(function(done) {

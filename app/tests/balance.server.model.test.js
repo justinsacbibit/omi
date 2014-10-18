@@ -56,8 +56,24 @@ describe('Balance Model Unit Tests:', function() {
 			});
 		});
 
-		it ('should error if the users are equal', function(done) {
+		it('should error if the users are equal', function(done) {
 			balance.user2 = user1;
+			return balance.save(function(err) {
+				should.exist(err);
+				done();
+			});
+		});
+
+		it('should require user1', function(done) {
+			balance.user1 = undefined;
+			return balance.save(function(err) {
+				should.exist(err);
+				done();
+			});
+		});
+
+		it('should require user2', function(done) {
+			balance.user2 = undefined;
 			return balance.save(function(err) {
 				should.exist(err);
 				done();
