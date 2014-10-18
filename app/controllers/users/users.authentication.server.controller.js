@@ -7,42 +7,80 @@ var _ = require('lodash'),
 	errorHandler = require('../errors'),
 	mongoose = require('mongoose'),
 	passport = require('passport'),
+	AccessToken = mongoose.model('AccessToken'),
 	User = mongoose.model('User');
 
 /**
  * Signup
  */
-exports.signup = function(req, res) {
-	// For security measurement we remove the roles from the req.body object
-	delete req.body.roles;
-
+var genericSignup = function genericSignup(req, done) {
 	// Init Variables
 	var user = new User(req.body);
-	var message = null;
 
 	// Add missing user fields
 	user.provider = 'local';
 	user.displayName = user.firstName + ' ' + user.lastName;
 
-	// Then save the user 
+	// Then save the user
 	user.save(function(err) {
 		if (err) {
-			return res.status(400).send({
-				message: errorHandler.getErrorMessage(err)
-			});
-		} else {
-			// Remove sensitive data before login
-			user.password = undefined;
-			user.salt = undefined;
-
-			req.login(user, function(err) {
-				if (err) {
-					res.status(400).send(err);
-				} else {
-					res.jsonp(user);
-				}
-			});
+			return done(err);
 		}
+
+		// Remove sensitive data before login
+		user.password = undefined;
+		user.salt = undefined;
+
+		done(null, user);
+	});
+};
+exports.signup = function(req, res) {
+	// For security measurement we remove the roles from the req.body object
+	delete req.body.roles;
+
+	genericSignup(req, function(err, user) {
+		if (err) return errorHandler.badRequest(res, err);
+
+		req.login(user, function(err) {
+			if (err) return res.status(400).send(err);
+
+			res.jsonp(user);
+		});
+	});
+};
+
+exports.new = function(req, res) {
+	genericSignup(req, function(err, user) {
+		if (err) return errorHandler.badRequest(res, err);
+
+		var token = AccessToken.newToken(user.id);
+		token.save(function(err) {
+			if (err) return errorHandler.server(res, err);
+
+			res.status(201).json({
+				user: user,
+				token: token
+			});
+		});
+	});
+};
+
+exports.login = function(req, res) {
+	res.json({
+		token: req.user.accessToken
+	});
+};
+
+exports.logout = function(req, res) {
+	var accessToken = req.user.accessToken;
+	accessToken.remove(function(err) {
+		if (err) {
+			return errorHandler.badRequest(res, 'lol u cant log out');
+		}
+
+		res.json({
+			message: 'Successfully logged out'
+		});
 	});
 };
 

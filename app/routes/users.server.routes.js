@@ -9,6 +9,14 @@ module.exports = function(app) {
 	// User Routes
 	var users = require('../../app/controllers/users');
 
+	// API Routes
+	app.route('/api/v1/auth')
+		.post(passport.authenticate('local', { session: false }), users.login)
+		.delete(users.requiresToken, users.logout);
+
+	app.route('/api/v1/users')
+		.post(users.new);
+
 	// Setting up the users profile api
 	app.route('/users/me').get(users.me);
 	app.route('/users').put(users.update);
@@ -47,7 +55,7 @@ module.exports = function(app) {
 	// Setting the linkedin oauth routes
 	app.route('/auth/linkedin').get(passport.authenticate('linkedin'));
 	app.route('/auth/linkedin/callback').get(users.oauthCallback('linkedin'));
-	
+
 	// Setting the github oauth routes
 	app.route('/auth/github').get(passport.authenticate('github'));
 	app.route('/auth/github/callback').get(users.oauthCallback('github'));

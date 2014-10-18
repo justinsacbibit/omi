@@ -4,8 +4,9 @@
  * Module dependencies.
  */
 var _ = require('lodash'),
-	mongoose = require('mongoose'),
-	User = mongoose.model('User');
+	  mongoose = require('mongoose'),
+	  passport = require('passport'),
+	  User = mongoose.model('User');
 
 /**
  * User middleware
@@ -33,6 +34,11 @@ exports.requiresLogin = function(req, res, next) {
 
 	next();
 };
+
+/**
+ * Require token middleware for API calls
+ */
+exports.requiresToken = passport.authenticate('bearer', { session: false });
 
 /**
  * User authorizations routing middleware

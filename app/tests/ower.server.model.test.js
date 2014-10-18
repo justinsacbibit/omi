@@ -47,6 +47,7 @@ describe('Ower Model Unit Tests:', function() {
 
 		it('should error without first name', function(done) {
 			ower.firstName = undefined;
+
 			return ower.save(function(err) {
 				should.exist(err);
 				done();
@@ -55,9 +56,50 @@ describe('Ower Model Unit Tests:', function() {
 
 		it('should error without a tethered user', function(done) {
 			ower.tetheredTo = undefined;
+
 			return ower.save(function(err) {
 				should.exist(err);
 				done();
+			});
+		});
+
+		it('should error for duplicates', function(done) {
+			var ower2 = new Ower({
+				firstName: ower.firstName,
+				tetheredTo: ower.tetheredTo
+			});
+
+			return ower.save(function(err) {
+				should.not.exist(err);
+				return ower2.save(function(err) {
+					should.exist(err);
+					done();
+				});
+			});
+		});
+
+		it('should be returned in alphabetical order', function(done) {
+			var ower2 = new Ower({
+				firstName: 'Go',
+				tetheredTo: ower.tetheredTo
+			});
+
+			return ower.save(function(err) {
+				should.not.exist(err);
+
+				return ower2.save(function(err) {
+					should.not.exist(err);
+
+					Ower.find().sort([['firstName', 'ascending']]).exec(function(err, owers) {
+						should.not.exist(err);
+
+						console.log(owers[0])
+
+						// owers[0].firstName.should.equal(ower.firstName);
+
+						done();
+					});
+				});
 			});
 		});
 	});

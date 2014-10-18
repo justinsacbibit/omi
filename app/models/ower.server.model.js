@@ -34,4 +34,19 @@ var OwerSchema = new Schema({
   }
 });
 
-mongoose.model('Ower', OwerSchema);
+var OwerModel = mongoose.model('Ower', OwerSchema);
+
+OwerSchema.path('tetheredTo').validate(function(tetheredTo, done) {
+  var id = this.id;
+  return OwerModel.find({
+    tetheredTo: tetheredTo,
+    firstName: this.firstName,
+    lastName: this.lastName
+  }, function(err, owers) {
+    if (err) return done(false);
+    else if (owers.length === 1 && String(owers[0]._id) !== String(id)) return done(false);
+    else if (owers.length > 1) return done(false);
+
+    done(true);
+  });
+});

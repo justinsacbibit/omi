@@ -126,10 +126,16 @@ module.exports = function(db) {
 		// Log it
 		console.error(err.stack);
 
-		// Error page
-		res.status(500).render('500', {
-			error: err.stack
-		});
+		if (req.route.path.substring(0, 4) === '/api') {
+			res.status(500).json({
+				message: err.message
+			});
+		} else {
+			// Error page
+			res.status(500).render('500', {
+				error: err.stack
+			});
+		}
 	});
 
 	// Assume 404 since no middleware responded

@@ -45,14 +45,34 @@ var getErrorMessage = exports.getErrorMessage = function getErrorMessage(err) {
  * Generic response creator
  */
 var respond = function respond(res, code, err) {
+	var msg;
+	if (typeof err === Error) {
+		msg = getErrorMessage(err);
+	} else {
+		msg = err;
+	}
 	res.status(code).send({
-		message: getErrorMessage(err)
+		message: msg
 	});
 };
 
 /**
  * 400 Bad Request
  */
-var badRequest = function badRequest(res, err) {
+var badRequest = exports.badRequest = function badRequest(res, err) {
 	respond(res, 400, err);
+};
+
+/**
+ * 403 Forbidden
+ */
+var forbidden = exports.forbidden = function forbidden(res, msg) {
+	respond(res, 403, msg);
+};
+
+/**
+ * 500 Server Error
+ */
+var server = exports.server = function server(res, err) {
+	respond(res, 500, err);
 };

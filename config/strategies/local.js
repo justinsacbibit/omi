@@ -4,8 +4,9 @@
  * Module dependencies.
  */
 var passport = require('passport'),
-	LocalStrategy = require('passport-local').Strategy,
-	User = require('mongoose').model('User');
+	  LocalStrategy = require('passport-local').Strategy,
+	  AccessToken = require('mongoose').model('AccessToken'),
+	  User = require('mongoose').model('User');
 
 module.exports = function() {
 	// Use local strategy
@@ -31,7 +32,15 @@ module.exports = function() {
 					});
 				}
 
-				return done(null, user);
+				var accessToken = AccessToken.newToken(user.id);
+				return accessToken.save(function(err) {
+					if (err) {
+						return done(err);
+					}
+					user.accessToken = accessToken;
+
+					return done(null, user);
+				});
 			});
 		}
 	));
