@@ -8,15 +8,33 @@
                 <div class="form-group">
                     <label class="control-label" for="name">Name</label>
                     <div class="controls">
-                        <input type="text" data-ng-model="name" id="name" class="form-control" placeholder="Name" required>
+                        <input type="text" data-ng-model="name" id="name" class="form-control" placeholder="Name" required />
                     </div>
+                    <label class="control-label" for="amount">Amount</label>
+                    <div class="controls">
+                        <input type="number" data-ng-model="amount" id="amount" class="form-control" placeholder="Amount" required/>
+                    </div>
+                    <label class="control-label" for="note">Note</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="note" id="note" class="form-control" placeholder="Note"/>
+                    </div>
+                    <label class="control-label" for="type">Type</label>
+                    <select class="form-control" id="type" data-ng-model="type" required>
+                        <option value="omi">Omi</option>
+                        <option value="payment">Payment</option>
+                    </select>
+                    <label class="control-label" for="direction">Direction</label>
+                    <select class="form-control" id="direction" data-ng-model="direction" required>
+                        <option value="sending">You are sending</option>
+                        <option value="receiving">You are receiving</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <input type="submit" class="btn btn-default">
                 </div>
-				<div data-ng-show="error" class="text-danger">
-					<strong data-ng-bind="error"></strong>
-				</div>
+                <div data-ng-show="error" class="text-danger">
+                    <strong data-ng-bind="error.message"></strong>
+                </div>
             </fieldset>
         </form>
     </div>

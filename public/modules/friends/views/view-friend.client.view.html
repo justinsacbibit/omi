@@ -1,0 +1,35 @@
+<section data-ng-controller="FriendsController" data-ng-init="findOne()">
+	<div class="page-header">
+		<h1>{{heading(friend)}}</h1>
+    <h3>
+      <a class="btn btn-primary" href="/#!/omis/create?friendId={{friend._id}}">
+        <i class="glyphicon glyphicon-plus"></i>  Add an omi
+      </a>
+    </h3>
+    <div class="pull-right">
+      <a class="btn btn-primary" data-ng-click="remove();">
+        <i class="glyphicon glyphicon-trash"></i>
+      </a>
+    </div>
+  </div>
+
+<section data-ng-controller="OmisController" data-ng-init="find()">
+    <div class="list-group">
+        <a data-ng-repeat="omi in omis" data-ng-href="#!/omis/{{omis._id}}" class="list-group-item">
+          <h4 class="list-group-item-heading" data-ng-bind="omi.name"></h4>
+          <p>You {{direction(omis)}} ${{omi.amount}}</p>
+          <p>Type: {{omi.type}}</p>
+          <small>
+            <em class="text-muted">
+              Created on
+              <span data-ng-bind="omi.created | date:'mediumDate'"></span>
+            </em>
+          </small>
+        </a>
+    </div>
+    <div class="alert alert-warning text-center" data-ng-hide="!omis.$resolved || omis.length">
+      No omis yet, why don't you <a href="/#!/omis/create?friendId={{friend._id}}">create one</a>?
+    </div>
+</section>
+
+</section>

@@ -2,8 +2,7 @@
 
 module.exports = function(app) {
 	var users = require('../../app/controllers/users'),
-			localTransactions = require('../controllers/local-transactions'),
-	    localomis = require('../../app/controllers/localomis');
+			localTransactions = require('../controllers/local-transactions');
 
 	// Localomis Routes
 	app.route('/localomis')
