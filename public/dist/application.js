@@ -44,124 +44,20 @@ angular.element(document).ready(function() {
 'use strict';
 
 // Use Applicaion configuration module to register a new module
-ApplicationConfiguration.registerModule('articles');
+ApplicationConfiguration.registerModule('core');
 'use strict';
 
-// Use Applicaion configuration module to register a new module
-ApplicationConfiguration.registerModule('core');
+// Use applicaion configuration module to register a new module
+ApplicationConfiguration.registerModule('omis');
+'use strict';
+
+// Use applicaion configuration module to register a new module
+ApplicationConfiguration.registerModule('owers');
 'use strict';
 
 // Use Applicaion configuration module to register a new module
 ApplicationConfiguration.registerModule('users');
 
-'use strict';
-
-// Configuring the Articles module
-angular.module('articles').run(['Menus',
-	function(Menus) {
-		// Set top bar menu items
-		Menus.addMenuItem('topbar', 'Articles', 'articles', 'dropdown', '/articles(/create)?');
-		Menus.addSubMenuItem('topbar', 'articles', 'List Articles', 'articles');
-		Menus.addSubMenuItem('topbar', 'articles', 'New Article', 'articles/create');
-	}
-]);
-'use strict';
-
-// Setting up route
-angular.module('articles').config(['$stateProvider',
-	function($stateProvider) {
-		// Articles state routing
-		$stateProvider.
-		state('listArticles', {
-			url: '/articles',
-			templateUrl: 'modules/articles/views/list-articles.client.view.html'
-		}).
-		state('createArticle', {
-			url: '/articles/create',
-			templateUrl: 'modules/articles/views/create-article.client.view.html'
-		}).
-		state('viewArticle', {
-			url: '/articles/:articleId',
-			templateUrl: 'modules/articles/views/view-article.client.view.html'
-		}).
-		state('editArticle', {
-			url: '/articles/:articleId/edit',
-			templateUrl: 'modules/articles/views/edit-article.client.view.html'
-		});
-	}
-]);
-'use strict';
-
-angular.module('articles').controller('ArticlesController', ['$scope', '$stateParams', '$location', 'Authentication', 'Articles',
-	function($scope, $stateParams, $location, Authentication, Articles) {
-		$scope.authentication = Authentication;
-
-		$scope.create = function() {
-			var article = new Articles({
-				title: this.title,
-				content: this.content
-			});
-			article.$save(function(response) {
-				$location.path('articles/' + response._id);
-
-				$scope.title = '';
-				$scope.content = '';
-			}, function(errorResponse) {
-				$scope.error = errorResponse.data.message;
-			});
-		};
-
-		$scope.remove = function(article) {
-			if (article) {
-				article.$remove();
-
-				for (var i in $scope.articles) {
-					if ($scope.articles[i] === article) {
-						$scope.articles.splice(i, 1);
-					}
-				}
-			} else {
-				$scope.article.$remove(function() {
-					$location.path('articles');
-				});
-			}
-		};
-
-		$scope.update = function() {
-			var article = $scope.article;
-
-			article.$update(function() {
-				$location.path('articles/' + article._id);
-			}, function(errorResponse) {
-				$scope.error = errorResponse.data.message;
-			});
-		};
-
-		$scope.find = function() {
-			$scope.articles = Articles.query();
-		};
-
-		$scope.findOne = function() {
-			$scope.article = Articles.get({
-				articleId: $stateParams.articleId
-			});
-		};
-	}
-]);
-'use strict';
-
-//Articles service used for communicating with the articles REST endpoints
-angular.module('articles').factory('Articles', ['$resource',
-	function($resource) {
-		return $resource('articles/:articleId', {
-			articleId: '@_id'
-		}, {
-			update: {
-				method: 'PUT'
-			}
-		});
-	}
-]);
 'use strict';
 
 // Setting up route
@@ -178,6 +74,16 @@ angular.module('core').config(['$stateProvider', '$urlRouterProvider',
 		});
 	}
 ]);
+
+// .run(function($rootScope, $location, Authentication) {
+// 	$rootScope.$watch(function() {
+// 		return $location.path();
+// 	}, function(newValue, oldValue) {
+// 		if (Authentication.user && newValue == '/') {
+// 			$location.path('/owers');
+// 		}
+// 	});
+// });
 'use strict';
 
 angular.module('core').controller('HeaderController', ['$scope', 'Authentication', 'Menus',
@@ -369,6 +275,234 @@ angular.module('core').service('Menus', [
 
 		//Adding the topbar menu
 		this.addMenu('topbar');
+	}
+]);
+'use strict';
+
+// Configuring the Articles module
+angular.module('omis').run(['Menus',
+	function(Menus) {
+		// Set top bar menu items
+		// Menus.addMenuItem('topbar', 'Omis', 'omis', 'dropdown', '/omis(/create)?');
+		// Menus.addSubMenuItem('topbar', 'omis', 'List Omis', 'omis');
+		// Menus.addSubMenuItem('topbar', 'omis', 'New Omi', 'omis/create');
+	}
+]);
+'use strict';
+
+//Setting up route
+angular.module('omis').config(['$stateProvider',
+	function($stateProvider) {
+		// Omis state routing
+		$stateProvider.
+		state('listOmis', {
+			url: '/omis',
+			templateUrl: 'modules/omis/views/list-omis.client.view.html'
+		}).
+		state('createOmi', {
+			url: '/omis/create',
+			templateUrl: 'modules/omis/views/create-omi.client.view.html'
+		}).
+		state('viewOmi', {
+			url: '/omis/:omiId',
+			templateUrl: 'modules/omis/views/view-omi.client.view.html'
+		}).
+		state('editOmi', {
+			url: '/omis/:omiId/edit',
+			templateUrl: 'modules/omis/views/edit-omi.client.view.html'
+		});
+	}
+]);
+'use strict';
+
+// Omis controller
+angular.module('omis').controller('OmisController', ['$scope', '$stateParams', '$location', 'Authentication', 'Omis',
+	function($scope, $stateParams, $location, Authentication, Omis ) {
+		$scope.authentication = Authentication;
+
+		// Create new Omi
+		$scope.create = function() {
+			// Create new Omi object
+			var omi = new Omis ({
+				name: this.name
+			});
+
+			// Redirect after save
+			omi.$save(function(response) {
+				$location.path('omis/' + response._id);
+
+				// Clear form fields
+				$scope.name = '';
+			}, function(errorResponse) {
+				$scope.error = errorResponse.data.message;
+			});
+		};
+
+		// Remove existing Omi
+		$scope.remove = function( omi ) {
+			if ( omi ) { omi.$remove();
+
+				for (var i in $scope.omis ) {
+					if ($scope.omis [i] === omi ) {
+						$scope.omis.splice(i, 1);
+					}
+				}
+			} else {
+				$scope.omi.$remove(function() {
+					$location.path('omis');
+				});
+			}
+		};
+
+		// Update existing Omi
+		$scope.update = function() {
+			var omi = $scope.omi ;
+
+			omi.$update(function() {
+				$location.path('omis/' + omi._id);
+			}, function(errorResponse) {
+				$scope.error = errorResponse.data.message;
+			});
+		};
+
+		// Find a list of Omis
+		$scope.find = function() {
+			$scope.omis = Omis.query();
+		};
+
+		// Find existing Omi
+		$scope.findOne = function() {
+			$scope.omi = Omis.get({ 
+				omiId: $stateParams.omiId
+			});
+		};
+	}
+]);
+'use strict';
+
+//Omis service used to communicate Omis REST endpoints
+angular.module('omis').factory('Omis', ['$resource',
+	function($resource) {
+		return $resource('omis/:omiId', { omiId: '@_id'
+		}, {
+			update: {
+				method: 'PUT'
+			}
+		});
+	}
+]);
+'use strict';
+
+// Configuring the Articles module
+angular.module('owers').run(['Menus',
+	function(Menus) {
+		// Set top bar menu items
+		Menus.addMenuItem('topbar', 'Owers', 'owers', 'dropdown', '/owers(/create)?');
+		Menus.addSubMenuItem('topbar', 'owers', 'List Owers', 'owers');
+		Menus.addSubMenuItem('topbar', 'owers', 'New Ower', 'owers/create');
+	}
+]);
+'use strict';
+
+//Setting up route
+angular.module('owers').config(['$stateProvider',
+	function($stateProvider) {
+		// Owers state routing
+		$stateProvider.
+		state('listOwers', {
+			url: '/owers',
+			templateUrl: 'modules/owers/views/list-owers.client.view.html'
+		}).
+		state('createOwer', {
+			url: '/owers/create',
+			templateUrl: 'modules/owers/views/create-ower.client.view.html'
+		}).
+		state('viewOwer', {
+			url: '/owers/:owerId',
+			templateUrl: 'modules/owers/views/view-ower.client.view.html'
+		}).
+		state('editOwer', {
+			url: '/owers/:owerId/edit',
+			templateUrl: 'modules/owers/views/edit-ower.client.view.html'
+		});
+	}
+]);
+'use strict';
+
+// Owers controller
+angular.module('owers').controller('OwersController', ['$scope', '$stateParams', '$location', 'Authentication', 'Owers',
+	function($scope, $stateParams, $location, Authentication, Owers ) {
+		$scope.authentication = Authentication;
+
+		// Create new Ower
+		$scope.create = function() {
+			// Create new Ower object
+			var ower = new Owers ({
+				name: this.name
+			});
+
+			// Redirect after save
+			ower.$save(function(response) {
+				$location.path('owers/' + response._id);
+
+				// Clear form fields
+				$scope.name = '';
+			}, function(errorResponse) {
+				$scope.error = errorResponse.data.message;
+			});
+		};
+
+		// Remove existing Ower
+		$scope.remove = function( ower ) {
+			if ( ower ) { ower.$remove();
+
+				for (var i in $scope.owers ) {
+					if ($scope.owers [i] === ower ) {
+						$scope.owers.splice(i, 1);
+					}
+				}
+			} else {
+				$scope.ower.$remove(function() {
+					$location.path('owers');
+				});
+			}
+		};
+
+		// Update existing Ower
+		$scope.update = function() {
+			var ower = $scope.ower ;
+
+			ower.$update(function() {
+				$location.path('owers/' + ower._id);
+			}, function(errorResponse) {
+				$scope.error = errorResponse.data.message;
+			});
+		};
+
+		// Find a list of Owers
+		$scope.find = function() {
+			$scope.owers = Owers.query();
+		};
+
+		// Find existing Ower
+		$scope.findOne = function() {
+			$scope.ower = Owers.get({ 
+				owerId: $stateParams.owerId
+			});
+		};
+	}
+]);
+'use strict';
+
+//Owers service used to communicate Owers REST endpoints
+angular.module('owers').factory('Owers', ['$resource',
+	function($resource) {
+		return $resource('owers/:owerId', { owerId: '@_id'
+		}, {
+			update: {
+				method: 'PUT'
+			}
+		});
 	}
 ]);
 'use strict';
