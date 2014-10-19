@@ -135,7 +135,7 @@ module.exports = function(db) {
 		// Log it
 		console.error(err.stack);
 
-		if (req.route.path.substring(0, 4) === '/api') {
+		if (req.originalUrl.substring(0, 4) === '/api') {
 			res.status(500).json({
 				message: err.message
 			});
