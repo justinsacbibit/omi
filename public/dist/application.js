@@ -309,6 +309,14 @@ angular.module('friends').config(['$stateProvider',
 			templateUrl: 'modules/friends/views/edit-friend.client.view.html'
 		});
 	}
+])
+
+.run(['Menus',
+  function(Menus) {
+    // Set top bar menu items
+    Menus.addMenuItem('topbar', 'Friends', 'friends', 'dropdown', '/friends(/create)?');
+    Menus.addSubMenuItem('topbar', 'friends', 'New Friend', 'friends/create');
+  }
 ]);
 'use strict';
 
