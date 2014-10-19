@@ -6,7 +6,8 @@ angular.module('friends').controller('FriendsController', ['$scope', '$statePara
 		$scope.authentication = Authentication;
 
 		$scope.heading = function(ower) {
-			var heading = ower.firstName + ' ' + (ower.lastName ? ower.lastName + ' ' : '');
+			var name = ower.firstName ? ower.firstName + ' ' + (ower.lastName ? ower.lastName + ' ' : '') : ower.displayName;
+			var heading = name;
 			if (ower.balance === 0) {
 				heading += 'does not owe you anything';
 			} else {
