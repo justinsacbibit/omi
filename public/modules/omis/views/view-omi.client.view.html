@@ -1,0 +1,26 @@
+<section data-ng-controller="OmisController" data-ng-init="findOne()">
+	<div class="page-header">
+		<h1 data-ng-bind="omi.name"></h1>
+		<h4>${{omi.amount}}</h3>
+		<p>From: {{omi.from.firstName}}</p>
+		<p>To: {{omi.to.firstName}}</p>
+		<p>Type: {{omi.type}}</p>
+		<p data-ng-bind="omi.note"></p>
+	</div>
+	<div class="pull-right" data-ng-show="authentication.user._id == omi.creator._id">
+		<a class="btn btn-primary" href="/#!/omis/{{omi._id}}/edit">
+			<i class="glyphicon glyphicon-edit"></i>
+		</a>
+		<a class="btn btn-primary" data-ng-click="remove();">
+			<i class="glyphicon glyphicon-trash"></i>
+		</a>
+	</div>
+	<small>
+		<em class="text-muted">
+			Posted on
+			<span data-ng-bind="omi.created | date:'mediumDate'"></span>
+			by
+			<span data-ng-bind="omi.creator.firstName + ' ' + omi.creator.lastName"></span>
+		</em>
+	</small>
+</section>

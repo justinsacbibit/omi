@@ -11,6 +11,8 @@ var mongoose = require('mongoose'),
 var validateParticipants = function validateParticipants(from) {
   if (String(from) === String(this.to)) {
     return false;
+  } else if (String(this.creator) !== String(this.to) && String(this.creator) !== String(from)) {
+    return false;
   }
 
   return true;
@@ -40,9 +42,14 @@ var TransactionSchema = new Schema({
     type: Schema.ObjectId,
     ref: 'User',
     required: true,
-    validate: [validateParticipants, 'From cannot be equal to to']
+    validate: [validateParticipants, 'From cannot be equal to to, and creator must be equal to either from or to']
   },
   to: {
+    type: Schema.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  creator: {
     type: Schema.ObjectId,
     ref: 'User',
     required: true

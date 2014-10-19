@@ -16,6 +16,7 @@ var mongoose = require('mongoose'),
 exports.create = function(req, res) {
   var isFromLoggedInUser = String(req.body.from) === String(req.user.id);
   var idToFind = isFromLoggedInUser ? req.body.to : req.body.from;
+  req.body.creator = req.user.id;
 
   User.findById(idToFind).exec(function(err, user) {
     if (err) return errorHandler.server(res, err);
@@ -71,7 +72,7 @@ exports.list = function(req, res) {
     from: req.user.id
   }, {
     to: req.user.id
-  }]).sort('-created').exec(function(err, transactions) {
+  }]).sort('-created').populate('from to creator', 'firstName lastName').exec(function(err, transactions) {
     if (err) return errorHandler.server(res, err);
 
     res.json(transactions);
@@ -89,14 +90,16 @@ exports.canCreate = function canCreate(req, res, next) {
 };
 
 exports.hasAuthorization = function hasAuthorization(req, res, next) {
-  if (String(req.transaction.from) !== String(req.user.id) && String(req.transaction.to) !== String(req.user.id)) {
+  var fromId = typeof req.transaction.from === String ? req.transaction.from : req.transaction.from.id;
+  var toId = typeof req.transaction.to === String ? req.transaction.to : req.transaction.to.id;
+  if (String(fromId) !== String(req.user.id) && String(toId) !== String(req.user.id)) {
     return errorHandler.forbidden(res, 'User is not authorized to perform that action');
   }
   next();
 };
 
 exports.transactionById = function transactionById(req, res, next, id) {
-  Transaction.findById(id).exec(function(err, transaction) {
+  Transaction.findById(id).populate('from to creator', 'firstName lastName').exec(function(err, transaction) {
     if (err) return next(err);
     if (!transaction) return next(new Error('Transaction not found'));
     req.transaction = transaction;
