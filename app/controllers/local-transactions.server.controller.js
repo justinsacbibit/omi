@@ -15,7 +15,7 @@ var mongoose = require('mongoose'),
  */
 exports.create = function(req, res) {
   req.body.ower = req.ower.id;
-  req.user = req.user.id;
+  req.body.user = req.user.id;
   LocalTransaction.newLocalTransaction(req.body, req.ower, function(err, localTransaction) {
     if (err) return errorHandler.badRequest(res, err);
     if (!localTransaction) return errorHandler.server(res, 'Unable to create local transaction');
