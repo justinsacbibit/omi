@@ -1,6 +1,11 @@
 <section data-ng-controller="OwersController" data-ng-init="findOne()">
     <div class="page-header">
         <h1>Edit Ower</h1>
+        <div class="pull-right" data-ng-show="authentication.user._id == ower.tetheredTo._id">
+            <a class="btn btn-primary" data-ng-click="remove();">
+                <i class="glyphicon glyphicon-trash"></i>
+            </a>
+        </div>
     </div>
     <div class="col-md-12">
         <form class="form-horizontal" data-ng-submit="update()" novalidate>

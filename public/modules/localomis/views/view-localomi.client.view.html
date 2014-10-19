@@ -1,6 +1,9 @@
 <section data-ng-controller="LocalomisController" data-ng-init="findOne()">
 	<div class="page-header">
 		<h1 data-ng-bind="localomi.name"></h1>
+		<h3>Ower: {{localomi.ower.firstName}}</h3>
+		<h4>You {{direction(localomi)}} ${{localomi.amount}}</h3>
+		<p data-ng-bind="localomi.note"></p>
 	</div>
 	<div class="pull-right" data-ng-show="authentication.user._id == localomi.user._id">
 		<a class="btn btn-primary" href="/#!/localomis/{{localomi._id}}/edit">

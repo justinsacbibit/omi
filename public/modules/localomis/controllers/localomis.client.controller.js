@@ -9,7 +9,12 @@ angular.module('localomis').controller('LocalomisController', ['$scope', '$state
 		$scope.create = function() {
 			// Create new Localomi object
 			var localomi = new Localomis ({
-				name: this.name
+				name: this.name,
+				amount: this.amount,
+				note: this.note,
+				owerId: $stateParams.owerId,
+				direction: this.direction,
+				type: this.type
 			});
 
 			// Redirect after save

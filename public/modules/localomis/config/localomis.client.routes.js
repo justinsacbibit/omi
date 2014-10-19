@@ -10,7 +10,7 @@ angular.module('localomis').config(['$stateProvider',
 			templateUrl: 'modules/localomis/views/list-localomis.client.view.html'
 		}).
 		state('createLocalomi', {
-			url: '/localomis/create',
+			url: '/owers/:owerId/localomis/create',
 			templateUrl: 'modules/localomis/views/create-localomi.client.view.html'
 		}).
 		state('viewLocalomi', {

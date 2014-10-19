@@ -8,12 +8,12 @@ module.exports = function(app) {
 	// Localomis Routes
 	app.route('/localomis')
 		.get(users.requiresLogin, localTransactions.list)
-		.post(users.requiresLogin, localTransactions.canCreate, localTransactions.create);
+		.post(users.requiresLogin, localTransactions.attachOwer, localTransactions.canCreate, localTransactions.create);
 
 	app.route('/localomis/:localomiId')
 		.get(users.requiresLogin, localTransactions.hasAuthorization, localTransactions.read)
-		.put(users.requiresLogin, localTransactions.hasAuthorization, localTransactions.update)
-		.delete(users.requiresLogin, localTransactions.hasAuthorization, localTransactions.delete);
+		.put(users.requiresLogin, localTransactions.attachOwer, localTransactions.hasAuthorization, localTransactions.update)
+		.delete(users.requiresLogin, localTransactions.attachOwer, localTransactions.hasAuthorization, localTransactions.delete);
 
 	// Finish by binding the Localomi middleware
 	app.param('localomiId', localTransactions.localTransactionById);

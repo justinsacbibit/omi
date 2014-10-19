@@ -1,13 +1,15 @@
 <section data-ng-controller="OwersController" data-ng-init="findOne()">
 	<div class="page-header">
-		<h1>{{heading()}}</h1>
+		<h1>{{heading(ower)}}</h1>
+    <h3>
+      <a class="btn btn-primary" href="/#!/owers/{{ower._id}}/localomis/create">
+        <i class="glyphicon glyphicon-plus"></i>  Add an omi
+      </a>
+    </h3>
 
     <div class="pull-right" data-ng-show="authentication.user._id == ower.tetheredTo._id">
       <a class="btn btn-primary" href="/#!/owers/{{ower._id}}/edit">
-        <i class="glyphicon glyphicon-edit"></i>
-      </a>
-      <a class="btn btn-primary" data-ng-click="remove();">
-        <i class="glyphicon glyphicon-trash"></i>
+        <i class="glyphicon glyphicon-edit"></i> Edit this ower
       </a>
     </div>
   </div>

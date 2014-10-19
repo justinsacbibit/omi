@@ -84,6 +84,9 @@ exports.hasAuthorization = function hasAuthorization(req, res, next) {
 };
 
 exports.attachOwer = function attachOwer(req, res, next) {
+  if (!req.body.owerId) {
+    return next(new Error('Ower ID must be included in the body'));
+  }
   Ower.findById(req.body.owerId).exec(function(err, ower) {
     if (err) return next(err);
     if (!ower) return next(new Error('Ower not found'));
@@ -93,14 +96,17 @@ exports.attachOwer = function attachOwer(req, res, next) {
 };
 
 exports.canCreate = function canCreate(req, res, next) {
-  if (String(req.ower.tetheredTo) !== String(req.user.id)) {
+  var userId = !req.ower.tetheredTo._id ? req.ower.tetheredTo : req.ower.tetheredTo.id;
+  if (String(userId) !== String(req.user.id)) {
+    console.log(userId)
+    console.log(req.user.id)
     return errorHandler.forbidden(res, 'User is not authorized to create a transaction for that ower');
   }
   next();
 };
 
 exports.localTransactionById = function localTransactionById(req, res, next, id) {
-  LocalTransaction.findById(id).populate('user', 'id').exec(function(err, localTransaction) {
+  LocalTransaction.findById(id).populate('user ower', 'id firstName lastName').exec(function(err, localTransaction) {
     if (err) return next(err);
     if (!localTransaction) return next(new Error('Local transaction not found'));
     req.localTransaction = localTransaction;

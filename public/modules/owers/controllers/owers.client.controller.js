@@ -5,17 +5,17 @@ angular.module('owers').controller('OwersController', ['$scope', '$stateParams',
 	function($scope, $stateParams, $location, Authentication, Owers ) {
 		$scope.authentication = Authentication;
 
-		$scope.heading = function() {
-			var heading = $scope.ower.firstName + ' ' + ($scope.ower.lastName ? $scope.ower.lastName + ' ' : '');
-			if ($scope.ower.balance === 0) {
+		$scope.heading = function(ower) {
+			var heading = ower.firstName + ' ' + (ower.lastName ? ower.lastName + ' ' : '');
+			if (ower.balance === 0) {
 				heading += 'does not owe you anything';
 			} else {
-				if ($scope.ower.balance < 0) {
+				if (ower.balance < 0) {
 					heading += 'is owed';
 				} else {
 					heading += 'owes you';
 				}
-				heading += ' $' + $scope.ower.balance;
+				heading += ' $' + Math.abs(ower.balance);
 			}
 			return heading;
 		};
