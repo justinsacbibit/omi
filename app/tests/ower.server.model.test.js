@@ -93,9 +93,8 @@ describe('Ower Model Unit Tests:', function() {
 					Ower.find().sort([['firstName', 'ascending']]).exec(function(err, owers) {
 						should.not.exist(err);
 
-						console.log(owers[0])
-
-						// owers[0].firstName.should.equal(ower.firstName);
+						owers[0].firstName.should.equal(ower2.firstName);
+						owers[1].firstName.should.equal(ower.firstName);
 
 						done();
 					});

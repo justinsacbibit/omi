@@ -71,6 +71,13 @@ var forbidden = exports.forbidden = function forbidden(res, msg) {
 };
 
 /**
+ * 404 Not Found
+ */
+var notFound = exports.notFound = function notFound(res, msg) {
+	respond(res, 404, msg);
+};
+
+/**
  * 500 Server Error
  */
 var server = exports.server = function server(res, err) {

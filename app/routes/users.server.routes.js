@@ -15,7 +15,14 @@ module.exports = function(app) {
 		.delete(users.requiresToken, users.logout);
 
 	app.route('/api/v1/users')
+		.get(users.requiresToken, users.users)
 		.post(users.new);
+
+	app.route('/api/v1/users/me')
+		.get(users.requiresToken, users.me);
+
+	app.route('/api/v1/users/me/friends')
+		.post(users.requiresToken, users.addFriend);
 
 	// Setting up the users profile api
 	app.route('/users/me').get(users.me);

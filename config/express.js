@@ -140,10 +140,16 @@ module.exports = function(db) {
 
 	// Assume 404 since no middleware responded
 	app.use(function(req, res) {
-		res.status(404).render('404', {
-			url: req.originalUrl,
-			error: 'Not Found'
-		});
+		if (req.originalUrl.substring(0, 4) === '/api') {
+			res.status(404).json({
+				message: 'Not Found'
+			});
+		} else {
+			res.status(404).render('404', {
+				url: req.originalUrl,
+				error: 'Not Found'
+			});
+		}
 	});
 
 	return app;

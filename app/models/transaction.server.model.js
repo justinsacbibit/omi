@@ -4,7 +4,8 @@
  * Module dependencies.
  */
 var mongoose = require('mongoose'),
-	Schema = mongoose.Schema;
+    Balance = mongoose.model('Balance'),
+	  Schema = mongoose.Schema;
 
 var validateParticipants = function validateParticipants(from) {
   if (String(from) === String(this.to)) {
@@ -50,5 +51,32 @@ var TransactionSchema = new Schema({
     required: true
   }
 });
+
+TransactionSchema.statics.newTransaction = function newTransaction(data, done) {
+  var Trans = this;
+  return Balance.getBalance(data.from, data.to, function(err, balance) {
+    if (err) return done(err);
+    if (!balance) return done(new Error('Unable to create balance'));
+
+    if (!balance.changeBalance(data.type === 'omi' ? data.amount : -data.amount, data.from, data.to)) {
+      return done(new Error('Validation error'));
+    }
+
+    var transaction = new Trans(data);
+    return transaction.save(function(err) {
+      if (err) return done(err);
+
+      return balance.save(function(err) {
+        if (err) {
+          console.log('Fatal error. Failure to update balance after new transaction. Attempting to recover.');
+          transaction.remove();
+          return done(err);
+        }
+
+        return done(null, transaction);
+      });
+    });
+  });
+};
 
 mongoose.model('Transaction', TransactionSchema);

@@ -122,6 +122,19 @@ UserSchema.methods.authenticate = function(password) {
 };
 
 /**
+ * Remove key fields from JSON response
+ */
+UserSchema.methods.toJSON = function toJSON() {
+	var obj = this.toObject();
+	delete obj.__v;
+	delete obj.provider;
+	delete obj.roles;
+	delete obj.salt;
+	delete obj.password;
+	return obj;
+};
+
+/**
  * Find possible not used username
  */
 UserSchema.statics.findUniqueUsername = function(username, suffix, callback) {

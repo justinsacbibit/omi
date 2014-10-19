@@ -6,6 +6,7 @@
 var should = require('should'),
 	mongoose = require('mongoose'),
 	User = mongoose.model('User'),
+	Balance = mongoose.model('Balance'),
 	Transaction = mongoose.model('Transaction');
 
 /**
@@ -52,7 +53,7 @@ describe('Transaction Model Unit Tests:', function() {
 		});
 	});
 
-	describe('Method Save', function() {
+	describe('save()', function() {
 		it('should be able to save without problems', function(done) {
 			return transaction.save(function(err) {
 				should.not.exist(err);
@@ -69,8 +70,33 @@ describe('Transaction Model Unit Tests:', function() {
 		});
 	});
 
+	describe('newTransaction()', function() {
+		it('should update the balance', function(done) {
+			var data = {
+				name: 'Sushi',
+				amount: 20,
+				note: 'Spring Sushi',
+				from: user1.id,
+				to: user2.id,
+				type: 'omi'
+			};
+
+			Transaction.newTransaction(data, function(err, transaction) {
+				should.not.exist(err);
+
+				Balance.findOne().exec(function(err, balance) {
+					should.not.exist(err);
+
+					balance.balance.should.equal(20);
+					done();
+				});
+			});
+		});
+	});
+
 	afterEach(function(done) {
 		Transaction.remove().exec();
+		Balance.remove().exec();
 		User.remove().exec();
 
 		done();
