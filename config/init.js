@@ -5,6 +5,8 @@
  */
 var glob = require('glob');
 
+require('newrelic');
+
 /**
  * Module init function.
  */
