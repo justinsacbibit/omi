@@ -1,0 +1,19 @@
+<section data-ng-controller="LocalomisController" data-ng-init="findOne()">
+	<div class="page-header">
+		<h1 data-ng-bind="localomi.name"></h1>
+	</div>
+	<div class="pull-right" data-ng-show="authentication.user._id == localomi.user._id">
+		<a class="btn btn-primary" href="/#!/localomis/{{localomi._id}}/edit">
+			<i class="glyphicon glyphicon-edit"></i>
+		</a>
+		<a class="btn btn-primary" data-ng-click="remove();">
+			<i class="glyphicon glyphicon-trash"></i>
+		</a>
+	</div>
+	<small>
+		<em class="text-muted">
+			Created on
+			<span data-ng-bind="localomi.created | date:'mediumDate'"></span>
+		</em>
+	</small>
+</section>

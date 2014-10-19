@@ -59,9 +59,16 @@ exports.delete = function(req, res) {
  * List of Local transactions
  */
 exports.list = function(req, res) {
-  LocalTransaction.find({
+  var query = {
     user: req.user.id
-  }, function(err, localTransactions) {
+  };
+
+  if (req.query.owerId) {
+    query.ower = req.query.owerId;
+  }
+  console.log(query);
+
+  LocalTransaction.find(query, function(err, localTransactions) {
     if (err) return errorHandler.server(res, err);
 
     res.json(localTransactions);
@@ -69,7 +76,8 @@ exports.list = function(req, res) {
 };
 
 exports.hasAuthorization = function hasAuthorization(req, res, next) {
-  if (String(req.localTransaction.user) !== String(req.user.id)) {
+  var userId = typeof req.localTransaction.user === String ? req.localTransaction.user : req.localTransaction.user.id;
+  if (String(userId) !== String(req.user.id)) {
     return errorHandler.forbidden(res, 'User is not authorized to perform that action');
   }
   next();
@@ -92,7 +100,7 @@ exports.canCreate = function canCreate(req, res, next) {
 };
 
 exports.localTransactionById = function localTransactionById(req, res, next, id) {
-  LocalTransaction.findById(id).exec(function(err, localTransaction) {
+  LocalTransaction.findById(id).populate('user', 'id').exec(function(err, localTransaction) {
     if (err) return next(err);
     if (!localTransaction) return next(new Error('Local transaction not found'));
     req.localTransaction = localTransaction;

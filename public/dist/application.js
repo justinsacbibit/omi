@@ -48,6 +48,10 @@ ApplicationConfiguration.registerModule('core');
 'use strict';
 
 // Use applicaion configuration module to register a new module
+ApplicationConfiguration.registerModule('localomis');
+'use strict';
+
+// Use applicaion configuration module to register a new module
 ApplicationConfiguration.registerModule('omis');
 'use strict';
 
@@ -279,6 +283,127 @@ angular.module('core').service('Menus', [
 ]);
 'use strict';
 
+//Setting up route
+angular.module('localomis').config(['$stateProvider',
+	function($stateProvider) {
+		// Localomis state routing
+		$stateProvider.
+		state('listLocalomis', {
+			url: '/localomis',
+			templateUrl: 'modules/localomis/views/list-localomis.client.view.html'
+		}).
+		state('createLocalomi', {
+			url: '/localomis/create',
+			templateUrl: 'modules/localomis/views/create-localomi.client.view.html'
+		}).
+		state('viewLocalomi', {
+			url: '/localomis/:localomiId',
+			templateUrl: 'modules/localomis/views/view-localomi.client.view.html'
+		}).
+		state('editLocalomi', {
+			url: '/localomis/:localomiId/edit',
+			templateUrl: 'modules/localomis/views/edit-localomi.client.view.html'
+		});
+	}
+]);
+'use strict';
+
+// Localomis controller
+angular.module('localomis').controller('LocalomisController', ['$scope', '$stateParams', '$location', 'Authentication', 'Localomis',
+	function($scope, $stateParams, $location, Authentication, Localomis ) {
+		$scope.authentication = Authentication;
+
+		// Create new Localomi
+		$scope.create = function() {
+			// Create new Localomi object
+			var localomi = new Localomis ({
+				name: this.name
+			});
+
+			// Redirect after save
+			localomi.$save(function(response) {
+				$location.path('localomis/' + response._id);
+
+				// Clear form fields
+				$scope.name = '';
+			}, function(errorResponse) {
+				$scope.error = errorResponse.data.message;
+			});
+		};
+
+		// Remove existing Localomi
+		$scope.remove = function( localomi ) {
+			if ( localomi ) { localomi.$remove();
+
+				for (var i in $scope.localomis ) {
+					if ($scope.localomis [i] === localomi ) {
+						$scope.localomis.splice(i, 1);
+					}
+				}
+			} else {
+				$scope.localomi.$remove(function() {
+					$location.path('localomis');
+				});
+			}
+		};
+
+		// Update existing Localomi
+		$scope.update = function() {
+			var localomi = $scope.localomi ;
+
+			localomi.$update(function() {
+				$location.path('localomis/' + localomi._id);
+			}, function(errorResponse) {
+				$scope.error = errorResponse.data.message;
+			});
+		};
+
+		// Find a list of Localomis
+		$scope.find = function() {
+			$scope.localomis = Localomis.query({
+				owerId: $stateParams.owerId
+			});
+		};
+
+		// Find existing Localomi
+		$scope.findOne = function() {
+			$scope.localomi = Localomis.get({
+				localomiId: $stateParams.localomiId
+			});
+		};
+
+		$scope.direction = function direction(localomi) {
+			if (localomi.type === 'omi') {
+				if (localomi.direction === 'toOwer') {
+					return 'lent';
+				} else {
+					return 'borrowed';
+				}
+			} else {
+				if (localomi.direction === 'toOwer') {
+					return 'paid';
+				} else {
+					return 'received';
+				}
+			}
+		};
+	}
+]);
+'use strict';
+
+//Localomis service used to communicate Localomis REST endpoints
+angular.module('localomis').factory('Localomis', ['$resource',
+	function($resource) {
+		return $resource('localomis/:localomiId', { localomiId: '@_id'
+		}, {
+			update: {
+				method: 'PUT'
+			}
+		});
+	}
+]);
+'use strict';
+
 // Configuring the Articles module
 angular.module('omis').run(['Menus',
 	function(Menus) {
@@ -438,7 +563,8 @@ angular.module('owers').controller('OwersController', ['$scope', '$stateParams',
 		$scope.create = function() {
 			// Create new Ower object
 			var ower = new Owers ({
-				name: this.name
+				firstName: this.firstName,
+				lastName: this.lastName
 			});
 
 			// Redirect after save
@@ -448,7 +574,7 @@ angular.module('owers').controller('OwersController', ['$scope', '$stateParams',
 				// Clear form fields
 				$scope.name = '';
 			}, function(errorResponse) {
-				$scope.error = errorResponse.data.message;
+				$scope.error = errorResponse.data.message.message;
 			});
 		};
 
@@ -475,7 +601,7 @@ angular.module('owers').controller('OwersController', ['$scope', '$stateParams',
 			ower.$update(function() {
 				$location.path('owers/' + ower._id);
 			}, function(errorResponse) {
-				$scope.error = errorResponse.data.message;
+				$scope.error = errorResponse.data.message.message;
 			});
 		};
 
@@ -486,7 +612,7 @@ angular.module('owers').controller('OwersController', ['$scope', '$stateParams',
 
 		// Find existing Ower
 		$scope.findOne = function() {
-			$scope.ower = Owers.get({ 
+			$scope.ower = Owers.get({
 				owerId: $stateParams.owerId
 			});
 		};

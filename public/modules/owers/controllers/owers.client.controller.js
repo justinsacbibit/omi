@@ -5,11 +5,27 @@ angular.module('owers').controller('OwersController', ['$scope', '$stateParams',
 	function($scope, $stateParams, $location, Authentication, Owers ) {
 		$scope.authentication = Authentication;
 
+		$scope.heading = function() {
+			var heading = $scope.ower.firstName + ' ' + ($scope.ower.lastName ? $scope.ower.lastName + ' ' : '');
+			if ($scope.ower.balance === 0) {
+				heading += 'does not owe you anything';
+			} else {
+				if ($scope.ower.balance < 0) {
+					heading += 'is owed';
+				} else {
+					heading += 'owes you';
+				}
+				heading += ' $' + $scope.ower.balance;
+			}
+			return heading;
+		};
+
 		// Create new Ower
 		$scope.create = function() {
 			// Create new Ower object
 			var ower = new Owers ({
-				name: this.name
+				firstName: this.firstName,
+				lastName: this.lastName
 			});
 
 			// Redirect after save
@@ -19,7 +35,7 @@ angular.module('owers').controller('OwersController', ['$scope', '$stateParams',
 				// Clear form fields
 				$scope.name = '';
 			}, function(errorResponse) {
-				$scope.error = errorResponse.data.message;
+				$scope.error = errorResponse.data.message.message;
 			});
 		};
 
@@ -46,7 +62,7 @@ angular.module('owers').controller('OwersController', ['$scope', '$stateParams',
 			ower.$update(function() {
 				$location.path('owers/' + ower._id);
 			}, function(errorResponse) {
-				$scope.error = errorResponse.data.message;
+				$scope.error = errorResponse.data.message.message;
 			});
 		};
 
@@ -57,7 +73,7 @@ angular.module('owers').controller('OwersController', ['$scope', '$stateParams',
 
 		// Find existing Ower
 		$scope.findOne = function() {
-			$scope.ower = Owers.get({ 
+			$scope.ower = Owers.get({
 				owerId: $stateParams.owerId
 			});
 		};
