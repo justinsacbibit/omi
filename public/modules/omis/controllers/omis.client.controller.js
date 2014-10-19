@@ -59,7 +59,9 @@ angular.module('omis').controller('OmisController', ['$scope', '$stateParams', '
 
 		// Find a list of Omis
 		$scope.find = function() {
-			$scope.omis = Omis.query();
+			$scope.omis = Omis.query({
+				friendId: $stateParams.friendId
+			});
 		};
 
 		// Find existing Omi

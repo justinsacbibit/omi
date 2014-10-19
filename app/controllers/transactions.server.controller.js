@@ -69,9 +69,11 @@ exports.delete = function(req, res) {
  */
 exports.list = function(req, res) {
   Transaction.find().or([{
-    from: req.user.id
+    from: req.user.id,
+    to: req.param('friendId') ? req.param('friendId') : ''
   }, {
-    to: req.user.id
+    to: req.user.id,
+    from: req.param('friendId') ? req.param('friendId') : ''
   }]).sort('-created').populate('from to creator', 'firstName lastName').exec(function(err, transactions) {
     if (err) return errorHandler.server(res, err);
 
