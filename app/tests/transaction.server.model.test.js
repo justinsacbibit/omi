@@ -12,7 +12,7 @@ var should = require('should'),
 /**
  * Globals
  */
-var user1, user2, transaction;
+var user1, user2, transaction, updatedTransaction;
 
 /**
  * Unit tests
@@ -88,6 +88,104 @@ describe('Transaction Model Unit Tests:', function() {
 					should.not.exist(err);
 
 					balance.balance.should.equal(20);
+					done();
+				});
+			});
+		});
+	});
+
+	describe('update()', function() {
+		beforeEach(function(done) {
+			var data = {
+				name: 'Sushi',
+				amount: 20,
+				note: 'Spring Sushi',
+				from: user1.id,
+				to: user2.id,
+				type: 'omi'
+			};
+
+			Transaction.newTransaction(data, function(err, transaction) {
+				should.not.exist(err);
+
+				Balance.findOne().exec(function(err, balance) {
+					should.not.exist(err);
+
+					balance.balance.should.equal(20);
+					updatedTransaction = transaction;
+					done();
+				});
+			});
+		});
+
+		it('should increase the balance', function(done) {
+			updatedTransaction.update({
+				amount: 25
+			}, function(err, transaction) {
+				should.not.exist(err);
+
+				Balance.findOne().exec(function(err, balance) {
+					should.not.exist(err);
+
+					balance.balance.should.equal(25);
+					done();
+				});
+			});
+		});
+
+		it('should decrease the balance', function(done) {
+			updatedTransaction.update({
+				amount: 15
+			}, function(err, transaction) {
+				should.not.exist(err);
+
+				Balance.findOne().exec(function(err, balance) {
+					should.not.exist(err);
+
+					balance.balance.should.equal(15);
+					done();
+				});
+			});
+		});
+
+		it('should not allow a balance of 0', function(done) {
+			updatedTransaction.update({
+				amount: 0
+			}, function(err, transaction) {
+				should.exist(err);
+				done();
+			});
+		});
+
+		it('should require from and to to be either the same as before, or swapped', function(done) {
+			updatedTransaction.update({
+				from: updatedTransaction.from,
+				to: updatedTransaction.from
+			}, function(err, transaction) {
+				should.exist(err);
+				done();
+			});
+		});
+
+		it('should error if only one of from and to are included', function(done) {
+			updatedTransaction.update({
+				from: updatedTransaction.from
+			}, function(err, transaction) {
+				should.exist(err);
+				done();
+			});
+		});
+
+		it('should change signs if the type changes', function(done) {
+			updatedTransaction.update({
+				type: 'payment'
+			}, function(err, transaction) {
+				should.not.exist(err);
+
+				Balance.findOne().exec(function(err, balance) {
+					should.not.exist(err);
+
+					balance.balance.should.equal(-20);
 					done();
 				});
 			});

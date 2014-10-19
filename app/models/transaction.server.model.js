@@ -15,6 +15,10 @@ var validateParticipants = function validateParticipants(from) {
   return true;
 };
 
+var validateAmount = function validateAmount(amount) {
+  return amount >= 0.01;
+};
+
 /**
  * Transaction Schema
  */
@@ -25,7 +29,8 @@ var TransactionSchema = new Schema({
   },
   amount: {
     type: Number,
-    required: true
+    required: true,
+    validate: [validateAmount, 'Amount must be greater than zero']
   },
   note: {
     type: String
@@ -74,6 +79,46 @@ TransactionSchema.statics.newTransaction = function newTransaction(data, done) {
         }
 
         return done(null, transaction);
+      });
+    });
+  });
+};
+
+TransactionSchema.methods.update = function update(data, done) {
+  if ((data.from || data.to) && !((String(this.from) === data.from && String(this.to) === data.to) ||
+      (String(this.from) === data.to && String(this.to) === data.from))) {
+    return done(new Error('Invalid from and to parameters'));
+  } else if (data.amount !== undefined && data.amount < 0.01) {
+    return done(new Error('Amount must be greater than zero'));
+  }
+
+  var trans = this;
+  return Balance.getBalance(this.from, this.to, function(err, balance) {
+    if (err) return done(err);
+    if (!balance) return done(new Error('Unable to create balance'));
+
+    if (!balance.changeBalance(trans.type === 'omi' ? -trans.amount : trans.amount, trans.from, trans.to)) {
+      return done(new Error('Validation error'));
+    }
+
+    var type = data.type || trans.type;
+    var amount = data.amount || trans.amount;
+    var from = data.from || trans.from;
+    var to = data.to || trans.to;
+    if (!balance.changeBalance(type === 'omi' ? amount : -amount, from, to)) {
+      return done(new Error('Validation error'));
+    }
+
+    return trans.save(function(err) {
+      if (err) return done(err);
+
+      return balance.save(function(err) {
+        if (err) {
+          trans.remove();
+          return done(err);
+        }
+
+        return done(null, trans);
       });
     });
   });

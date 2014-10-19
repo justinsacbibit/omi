@@ -41,11 +41,16 @@ exports.read = function(req, res) {
  * Update a Transaction
  */
 exports.update = function(req, res) {
+  req.transaction.update(req.body, function(err, transaction) {
+    if (err) return errorHandler.badRequest(res, err);
+    if (!transaction) return errorHandler.badRequest(res, 'Unable to update transaction');
 
+    res.json(transaction);
+  });
 };
 
 /**
- * Delete an Transaction
+ * Delete a Transaction
  */
 exports.delete = function(req, res) {
 
