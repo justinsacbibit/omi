@@ -24,6 +24,15 @@ module.exports = function(db) {
 	// Initialize express app
 	var app = express();
 
+	// Force SSL
+	app.use(function checkSSL(req, res, next) {
+		var herokuProxyHeader = req.headers['x-forwarded-proto'];
+  	if (herokuProxyHeader && herokuProxyHeader !== 'https') {
+    	return res.redirect(['https://', req.hostname, req.URL].join(''));
+  	}
+  	return next();
+	});
+
 	// Globbing model files
 	config.getGlobbedFiles('./app/models/**/*.js').forEach(function(modelPath) {
 		require(path.resolve(modelPath));
