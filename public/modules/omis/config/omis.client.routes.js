@@ -22,14 +22,4 @@ angular.module('omis').config(['$stateProvider',
 			templateUrl: 'modules/omis/views/edit-omi.client.view.html'
 		});
 	}
-])
-
-.run(function($rootScope, $location, Authentication) {
-	$rootScope.$watch(function() {
-		return $location.path();
-	}, function(newValue, oldValue) {
-		if (Authentication.user && newValue == '/') {
-			$location.path('/omis');
-		}
-	});
-});
+]);

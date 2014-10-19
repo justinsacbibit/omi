@@ -1,0 +1,13 @@
+<section data-ng-controller="OwersController" data-ng-init="find()">
+    <div class="page-header">
+        <h1>Owers</h1>
+    </div>
+    <div class="list-group">
+        <a data-ng-repeat="ower in owers" data-ng-href="#!/owers/{{ower._id}}" class="list-group-item">
+			<h4 class="list-group-item-heading">{{ower.firstName}} owes you ${{ower.balance}}</h4>
+        </a>
+    </div>
+    <div class="alert alert-warning text-center" data-ng-hide="!owers.$resolved || owers.length">
+    	No Owers yet, why don't you <a href="/#!/owers/create">create one</a>?
+    </div>
+</section>
