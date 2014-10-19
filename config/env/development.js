@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-	db: 'mongodb://localhost/omi-dev',
+	db: process.env.MONGOHQ_URL || 'mongodb://localhost/omi-dev',
 	app: {
 		title: 'Omi - Development Environment'
 	},
