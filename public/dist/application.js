@@ -73,17 +73,17 @@ angular.module('core').config(['$stateProvider', '$urlRouterProvider',
 			templateUrl: 'modules/core/views/home.client.view.html'
 		});
 	}
-]);
+])
 
-// .run(function($rootScope, $location, Authentication) {
-// 	$rootScope.$watch(function() {
-// 		return $location.path();
-// 	}, function(newValue, oldValue) {
-// 		if (Authentication.user && newValue == '/') {
-// 			$location.path('/owers');
-// 		}
-// 	});
-// });
+.run(["$rootScope", "$location", "Authentication", function($rootScope, $location, Authentication) {
+	$rootScope.$watch(function() {
+		return $location.path();
+	}, function(newValue, oldValue) {
+		if (Authentication.user && newValue === '/') {
+			$location.path('/owers');
+		}
+	});
+}]);
 'use strict';
 
 angular.module('core').controller('HeaderController', ['$scope', 'Authentication', 'Menus',

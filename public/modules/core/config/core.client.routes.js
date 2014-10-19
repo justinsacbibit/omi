@@ -13,14 +13,14 @@ angular.module('core').config(['$stateProvider', '$urlRouterProvider',
 			templateUrl: 'modules/core/views/home.client.view.html'
 		});
 	}
-]);
+])
 
-// .run(function($rootScope, $location, Authentication) {
-// 	$rootScope.$watch(function() {
-// 		return $location.path();
-// 	}, function(newValue, oldValue) {
-// 		if (Authentication.user && newValue == '/') {
-// 			$location.path('/owers');
-// 		}
-// 	});
-// });
+.run(function($rootScope, $location, Authentication) {
+	$rootScope.$watch(function() {
+		return $location.path();
+	}, function(newValue, oldValue) {
+		if (Authentication.user && newValue === '/') {
+			$location.path('/owers');
+		}
+	});
+});
