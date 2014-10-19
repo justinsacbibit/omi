@@ -5,7 +5,8 @@
  */
 var mongoose = require('mongoose'),
     Balance = mongoose.model('Balance'),
-	  Schema = mongoose.Schema;
+	  Schema = mongoose.Schema,
+    _ = require('lodash');
 
 var validateParticipants = function validateParticipants(from) {
   if (String(from) === String(this.to)) {
@@ -95,7 +96,7 @@ TransactionSchema.methods.update = function update(data, done) {
   var trans = this;
   return Balance.getBalance(this.from, this.to, function(err, balance) {
     if (err) return done(err);
-    if (!balance) return done(new Error('Unable to create balance'));
+    if (!balance) return done(new Error('Unable to find balance'));
 
     if (!balance.changeBalance(trans.type === 'omi' ? -trans.amount : trans.amount, trans.from, trans.to)) {
       return done(new Error('Validation error'));
@@ -109,6 +110,8 @@ TransactionSchema.methods.update = function update(data, done) {
       return done(new Error('Validation error'));
     }
 
+    trans = _.extend(trans, data);
+
     return trans.save(function(err) {
       if (err) return done(err);
 
@@ -117,6 +120,29 @@ TransactionSchema.methods.update = function update(data, done) {
           trans.remove();
           return done(err);
         }
+
+        trans.amount = amount;
+        return done(null, trans);
+      });
+    });
+  });
+};
+
+TransactionSchema.methods.delete = function del(done) {
+  var trans = this;
+  return Balance.getBalance(this.from, this.to, function(err, balance) {
+    if (err) return done(err);
+    if (!balance) return done(new Error('Unable to find balance'));
+
+    if (!balance.changeBalance(trans.type === 'omi' ? -trans.amount : trans.amount, trans.from, trans.to)) {
+      return done(new Error('Server error'));
+    }
+
+    return trans.remove(function(err) {
+      if (err) return done(err);
+
+      return balance.save(function(err) {
+        if (err) return done(err);
 
         return done(null, trans);
       });

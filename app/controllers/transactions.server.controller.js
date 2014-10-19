@@ -53,7 +53,14 @@ exports.update = function(req, res) {
  * Delete a Transaction
  */
 exports.delete = function(req, res) {
+  req.transaction.delete(function(err, transaction) {
+    if (!err) return errorHandler.badRequest(res, err);
+    if (!transaction) return errorHandler.server(res, 'Unable to delete transaction');
 
+    res.json({
+      message: 'Transaction successfully deleted'
+    });
+  });
 };
 
 /**

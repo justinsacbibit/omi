@@ -69,9 +69,9 @@ BalanceSchema.methods.changeBalance = function changeBalance(delta, from, to) {
       user2 = String(from) < String(to) ? to : from;
 
   if (String(from) === String(this.user1) && String(to) === String(this.user2)) {
-    this.balance += delta;
+    this.balance += Number(delta);
   } else if (String(to) === String(this.user1) && String(from) === String(this.user2)) {
-    this.balance -= delta;
+    this.balance -= Number(delta);
   } else {
     return false;
   }

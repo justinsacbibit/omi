@@ -11,7 +11,7 @@ module.exports = function(app) {
     .get(users.requiresToken, transactions.list)
     .post(users.requiresToken, transactions.canCreate, transactions.create);
 
-  app.route('api/v1/transactions/:transactionId')
+  app.route('/api/v1/transactions/:transactionId')
     .get(users.requiresToken, transactions.hasAuthorization, transactions.read)
     .put(users.requiresToken, transactions.hasAuthorization, transactions.update)
     .delete(users.requiresToken, transactions.hasAuthorization, transactions.delete);
