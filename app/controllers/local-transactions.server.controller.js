@@ -98,8 +98,6 @@ exports.attachOwer = function attachOwer(req, res, next) {
 exports.canCreate = function canCreate(req, res, next) {
   var userId = !req.ower.tetheredTo._id ? req.ower.tetheredTo : req.ower.tetheredTo.id;
   if (String(userId) !== String(req.user.id)) {
-    console.log(userId)
-    console.log(req.user.id)
     return errorHandler.forbidden(res, 'User is not authorized to create a transaction for that ower');
   }
   next();

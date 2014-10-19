@@ -293,7 +293,7 @@ angular.module('localomis').config(['$stateProvider',
 			templateUrl: 'modules/localomis/views/list-localomis.client.view.html'
 		}).
 		state('createLocalomi', {
-			url: '/localomis/create',
+			url: '/owers/:owerId/localomis/create',
 			templateUrl: 'modules/localomis/views/create-localomi.client.view.html'
 		}).
 		state('viewLocalomi', {
@@ -317,7 +317,12 @@ angular.module('localomis').controller('LocalomisController', ['$scope', '$state
 		$scope.create = function() {
 			// Create new Localomi object
 			var localomi = new Localomis ({
-				name: this.name
+				name: this.name,
+				amount: this.amount,
+				note: this.note,
+				owerId: $stateParams.owerId,
+				direction: this.direction,
+				type: this.type
 			});
 
 			// Redirect after save
@@ -558,6 +563,21 @@ angular.module('owers').config(['$stateProvider',
 angular.module('owers').controller('OwersController', ['$scope', '$stateParams', '$location', 'Authentication', 'Owers',
 	function($scope, $stateParams, $location, Authentication, Owers ) {
 		$scope.authentication = Authentication;
+
+		$scope.heading = function(ower) {
+			var heading = ower.firstName + ' ' + (ower.lastName ? ower.lastName + ' ' : '');
+			if (ower.balance === 0) {
+				heading += 'does not owe you anything';
+			} else {
+				if (ower.balance < 0) {
+					heading += 'is owed';
+				} else {
+					heading += 'owes you';
+				}
+				heading += ' $' + Math.abs(ower.balance);
+			}
+			return heading;
+		};
 
 		// Create new Ower
 		$scope.create = function() {

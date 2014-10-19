@@ -1,6 +1,6 @@
 <section data-ng-controller="LocalomisController">
     <div class="page-header">
-        <h1>New Localomi</h1>
+        <h1>New Omi</h1>
     </div>
     <div class="col-md-12">
         <form class="form-horizontal" data-ng-submit="create()">
@@ -19,12 +19,12 @@
                         <input type="text" data-ng-model="note" id="note" class="form-control" placeholder="Note"/>
                     </div>
                     <label class="control-label" for="type">Type</label>
-                    <select class="form-control" data-ng-model="type" id="type" required>
+                    <select class="form-control" id="type" data-ng-model="type" required>
                         <option value="omi">Omi</option>
                         <option value="payment">Payment</option>
                     </select>
                     <label class="control-label" for="direction">Direction</label>
-                    <select class="form-control" data-ng-model="direction" id="direction" required>
+                    <select class="form-control" id="direction" data-ng-model="direction" required>
                         <option value="toOwer">You are sending</option>
                         <option value="toUser">You are receiving</option>
                     </select>
