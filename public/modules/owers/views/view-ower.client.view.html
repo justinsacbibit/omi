@@ -1,8 +1,31 @@
 <section data-ng-controller="OwersController" data-ng-init="findOne()">
 	<div class="page-header">
-		<h1 data-ng-bind="ower.name"></h1>
+		<h1 data-ng-bind="ower.firstName"></h1>
 	</div>
-	<div class="pull-right" data-ng-show="authentication.user._id == ower.user._id">
+	<div>
+
+
+<section data-ng-controller="OmisController" data-ng-init="find()">
+    <div class="list-group">
+        <a data-ng-repeat="omi in omis" data-ng-href="#!/omis/{{omi._id}}" class="list-group-item">
+			<small class="list-group-item-text">
+				Posted on
+				<span data-ng-bind="omi.created | date:'medium'"></span>
+				by
+				<span data-ng-bind="omi.creator.firstName"></span>
+			</small>
+			<h4>$<span data-ng-bind="omi.amount"></span>: <span class="list-group-item-heading" data-ng-bind="omi.name"></span></h4>
+        </a>
+    </div>
+    <div class="alert alert-warning text-center" data-ng-hide="!omis.$resolved || omis.length">
+    	No Omis yet, why don't you <a href="/#!/omis/create">create one</a>?
+    </div>
+</section>
+
+
+
+	</div>
+	<div class="pull-right" data-ng-show="authentication.user._id == ower.tetheredTo._id">
 		<a class="btn btn-primary" href="/#!/owers/{{ower._id}}/edit">
 			<i class="glyphicon glyphicon-edit"></i>
 		</a>
@@ -10,12 +33,4 @@
 			<i class="glyphicon glyphicon-trash"></i>
 		</a>
 	</div>
-	<small>
-		<em class="text-muted">
-			Posted on
-			<span data-ng-bind="ower.created | date:'mediumDate'"></span>
-			by
-			<span data-ng-bind="ower.user.displayName"></span>
-		</em>
-	</small>
 </section>

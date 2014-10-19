@@ -83,7 +83,7 @@ exports.list = function(req, res) {
  * Ower middleware
  */
 exports.owerById = function owerById(req, res, next, id) {
-  Ower.findById(id).exec(function(err, ower) {
+  Ower.findById(id).populate('tetheredTo', 'id').exec(function(err, ower) {
     if (err) return next(err);
     if (!ower) return next(new Error('Ower not found'));
     req.ower = ower;
@@ -102,7 +102,8 @@ exports.cannotModifyBalance = function cannotModifyBalance(req, res, next) {
  * Ower authorization middleware
  */
 exports.hasAuthorization = function hasAuthorization(req, res, next) {
-  if (String(req.ower.tetheredTo) !== String(req.user.id)) {
+  var userId = typeof req.ower.tetheredTo === String ? req.ower.tetheredTo : req.ower.tetheredTo.id;
+  if (String(userId) !== String(req.user.id)) {
     return errorHandler.forbidden(res, 'User is not authorized to perform that action');
   }
   next();
