@@ -5,6 +5,41 @@ angular.module('omis').controller('OmisController', ['$scope', '$stateParams', '
 	function($scope, $stateParams, $location, Authentication, Omis ) {
 		$scope.authentication = Authentication;
 
+		$scope.description = function(omi) {
+			var description = 'You ';
+			var direction, name;
+			if (!omi.from || !omi.to) {
+				return;
+			}
+			if (omi.type === 'omi') {
+				if (String(omi.from._id) === String(Authentication.user._id)) {
+					description += 'lent';
+					direction = 'to';
+				} else {
+					description += 'borrowed';
+					direction = 'from';
+				}
+			} else {
+				if (String(omi.from._id) === String(Authentication.user._id)) {
+					description += 'paid';
+					direction = 'to';
+				} else {
+					description += 'received';
+					direction = 'from';
+				}
+			}
+			description += ' $';
+			description += Math.abs(omi.amount);
+			description += ' ' + direction + ' ';
+			if (String(omi.from._id) === String(Authentication.user._id)) {
+				name = omi.to.firstName ? omi.to.firstName + ' ' + omi.to.lastName : omi.to.displayName;
+			} else {
+				name = omi.from.firstName ? omi.from.firstName + ' ' + omi.from.lastName : omi.from.displayName;
+			}
+			description += name;
+			return description;
+		};
+
 		// Create new Omi
 		$scope.create = function() {
 			// Create new Omi object

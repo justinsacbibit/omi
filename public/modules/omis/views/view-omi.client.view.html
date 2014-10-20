@@ -1,9 +1,7 @@
 <section data-ng-controller="OmisController" data-ng-init="findOne()">
 	<div class="page-header">
 		<h1 data-ng-bind="omi.name"></h1>
-		<h4>${{omi.amount}}</h3>
-		<p>From: {{omi.from.firstName}}</p>
-		<p>To: {{omi.to.firstName}}</p>
+		<h4>{{description(omi)}}</h4>
 		<p>Type: {{omi.type}}</p>
 		<p data-ng-bind="omi.note"></p>
 	</div>

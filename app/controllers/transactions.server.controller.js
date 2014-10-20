@@ -101,7 +101,7 @@ exports.hasAuthorization = function hasAuthorization(req, res, next) {
 };
 
 exports.transactionById = function transactionById(req, res, next, id) {
-  Transaction.findById(id).populate('from to creator', 'firstName lastName').exec(function(err, transaction) {
+  Transaction.findById(id).populate('from to creator', 'firstName lastName displayName').exec(function(err, transaction) {
     if (err) return next(err);
     if (!transaction) return next(new Error('Transaction not found'));
     req.transaction = transaction;
