@@ -3,7 +3,7 @@
 		<h1 data-ng-bind="omi.name"></h1>
 		<h4>{{description(omi)}}</h4>
 		<p>Type: {{omi.type}}</p>
-		<p data-ng-bind="omi.note"></p>
+		<p>Note: {{omi.note}}</p>
 	</div>
 	<div class="pull-right" data-ng-show="authentication.user._id == omi.creator._id">
 		<a class="btn btn-primary" href="/#!/omis/{{omi._id}}/edit">
