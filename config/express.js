@@ -28,7 +28,7 @@ module.exports = function(db) {
 	app.use(function checkSSL(req, res, next) {
 		var herokuProxyHeader = req.headers['x-forwarded-proto'];
   	if (herokuProxyHeader && herokuProxyHeader !== 'https') {
-    	return res.redirect(['https://', req.hostname, req.URL].join(''));
+    	return res.redirect(['https://', req.hostname, req.originalUrl].join(''));
   	}
   	return next();
 	});
