@@ -1,4 +1,4 @@
-omi-node
-========
+omi
+===
 
-REST API for omi, using Node.js.
+A simple web app for keeping track of who owes you money.
