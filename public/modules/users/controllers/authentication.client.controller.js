@@ -15,7 +15,20 @@ angular.module('users').controller('AuthenticationController', ['$scope', '$http
 				// And redirect to the index page
 				$location.path('/');
 			}).error(function(response) {
-				$scope.error = response.message;
+				if (response.message.errors) {
+					var reduce = function(collection, reducer, memo) {
+						for (var key in collection) {
+							memo = reducer(memo, collection[key], key);
+						}
+						return memo;
+					};
+
+					$scope.error = reduce(response.message.errors, function(memo, value, key) {
+						return memo + value.message + '.\n';
+					}, '');
+				} else {
+					$scope.error = response.message;
+				}
 			});
 		};
 

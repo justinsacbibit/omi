@@ -35,6 +35,7 @@ exports.read = function(req, res) {
  * Update a Local transaction
  */
 exports.update = function(req, res) {
+
   req.localTransaction.update(req.body, req.ower, function(err, localTransaction) {
     if (err) return errorHandler.badRequest(res, err);
 
@@ -84,10 +85,15 @@ exports.hasAuthorization = function hasAuthorization(req, res, next) {
 };
 
 exports.attachOwer = function attachOwer(req, res, next) {
-  if (!req.body.owerId) {
+  var owerId;
+  if (req.localTransaction) {
+    owerId = req.localTransaction.ower;
+  } else if (!req.body.owerId) {
     return next(new Error('Ower ID must be included in the body'));
+  } else {
+    owerId = req.body.owerId;
   }
-  Ower.findById(req.body.owerId).exec(function(err, ower) {
+  Ower.findById(owerId).exec(function(err, ower) {
     if (err) return next(err);
     if (!ower) return next(new Error('Ower not found'));
     req.ower = ower;

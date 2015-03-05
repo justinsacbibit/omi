@@ -119,7 +119,7 @@ LocalTransactionSchema.methods.delete = function del(ower, done) {
     ower.balance += Number(localTransaction.amount);
   }
 
-  localTransaction.save(function(err) {
+  localTransaction.remove(function(err) {
     if (err) return done(err);
 
     ower.save(function(err) {
